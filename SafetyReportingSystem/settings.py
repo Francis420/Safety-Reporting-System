@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'accounts',
     'admin_panel',
     'incidents',
-    'geolocation',
     'status_tracking',
     'dashboard',
     'notifications',
