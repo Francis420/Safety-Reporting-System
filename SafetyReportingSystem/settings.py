@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'feedback',
     'help',
     'about',
+    'leaflet',
 ]
 
 MIDDLEWARE = [
@@ -147,3 +148,14 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = '/'
+
+LEAFLET_CONFIG = {
+    'DEFAULT_CENTER': (12.8797, 121.7740),
+    'DEFAULT_ZOOM': 12,
+    'MIN_ZOOM': 3,
+    'MAX_ZOOM': 18,
+    'SCALE': 'both',
+}
+
+GDAL_LIBRARY_PATH = os.path.join('C:\\', 'OSGeo4W', 'bin', 'gdal309.dll')
+GEOS_LIBRARY_PATH = os.path.join('C:\\', 'OSGeo4W', 'bin', 'geos_c.dll')

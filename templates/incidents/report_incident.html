@@ -3,28 +3,80 @@
 {% block title %}Report Incident{% endblock %}
 
 {% block content %}
-<h2>Report an Incident</h2>
+<h1>Report an Incident</h1>
+
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <div id="map" style="height: 400px;"></div>
+    <button type="button" onclick="getLocation()">Get Current Location</button>
+    <input type="hidden" id="latitude" name="latitude">
+    <input type="hidden" id="longitude" name="longitude">
+    <div id="map" style="height: 400px; width: 100%;"></div>
     <button type="submit">Submit Report</button>
 </form>
 
 <script>
-    var map = L.map('map').setView([12.8797, 121.7740], 13); 
+let map;
+let marker;
+
+function initMap() {
+    map = L.map('map').setView([11.2444339667059045, 125.00447755611665], 13);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var marker;
-    map.on('click', function(e) {
-        if (marker) {
-            map.removeLayer(marker);
-        }
-        marker = L.marker(e.latlng).addTo(map);
-        document.getElementById('id_latitude').value = e.latlng.lat;
-        document.getElementById('id_longitude').value = e.latlng.lng;
+    marker = L.marker([51.505, -0.09], {draggable: true}).addTo(map);
+
+    marker.on('dragend', function(e) {
+        const latLng = marker.getLatLng();
+        document.getElementById('latitude').value = latLng.lat;
+        document.getElementById('longitude').value = latLng.lng;
     });
+
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        document.getElementById('latitude').value = e.latlng.lat;
+        document.getElementById('longitude').value = e.latlng.lng;
+    });
+}
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+function showPosition(position) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+    const newPosition = [lat, lng];
+    marker.setLatLng(newPosition);
+    map.setView(newPosition, 13);
+    alert("Location obtained successfully!");
+}
+
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            alert("User denied the request for Geolocation.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("An unknown error occurred.");
+            break;
+    }
+}
+
+window.onload = initMap;
 </script>
 {% endblock %}
