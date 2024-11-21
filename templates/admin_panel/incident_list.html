@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Incident Reports{% endblock %}
+
+{% block content %}
+<h2>Incident Reports</h2>
+<table>
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for incident in incidents %}
+        <tr>
+            <td>{{ incident.user.username }}</td>
+            <td>{{ incident.get_category_display }}</td>
+            <td>{{ incident.description }}</td>
+            <td>{{ incident.location }}</td>
+            <td>{{ incident.get_status_display }}</td>
+            <td>{{ incident.created_at }}</td>
+            <td>{{ incident.updated_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

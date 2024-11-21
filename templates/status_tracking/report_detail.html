@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Details{% endblock %}
+
+{% block content %}
+<h2>Report Details</h2>
+<p><strong>Category:</strong> {{ report.get_category_display }}</p>
+<p><strong>Description:</strong> {{ report.description }}</p>
+<p><strong>Location:</strong> {{ report.location }}</p>
+<p><strong>Status:</strong> {{ report.get_status_display }}</p>
+<p><strong>Created At:</strong> {{ report.created_at }}</p>
+<p><strong>Updated At:</strong> {{ report.updated_at }}</p>
+{% endblock %}

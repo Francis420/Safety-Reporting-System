@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Incident Details{% endblock %}
+
+{% block content %}
+<h2>{{ incident.title }}</h2>
+<p>{{ incident.description }}</p>
+<p>Status: {{ incident.status }}</p>
+<p>Location: {{ incident.location }}</p>
+<p>Reported on: {{ incident.created_at }}</p>
+{% endblock %}
