@@ -9,8 +9,8 @@ class IncidentReport(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ('submitted', 'Submitted'),
-        ('in_progress', 'In Progress'),
+        ('received', 'Received'),
+        ('acknowledged', 'Acknowledged'),
         ('resolved', 'Resolved'),
     ]
 
@@ -20,7 +20,7 @@ class IncidentReport(models.Model):
     location = models.CharField(max_length=255)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='submitted')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='received')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

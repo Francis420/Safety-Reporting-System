@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}My Incident Reports{% endblock %}
+
+{% block content %}
+<h2>My Incident Reports</h2>
+<table>
+    <tr>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Location</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    {% for incident in incidents %}
+    <tr>
+        <td>{{ incident.get_category_display }}</td>
+        <td>{{ incident.description }}</td>
+        <td>{{ incident.location }}</td>
+        <td>{{ incident.get_status_display }}</td>
+        <td>
+            <a href="{% url 'user_incident_detail' incident.pk %}">View</a> |
+            <a href="{% url 'update_incident' incident.pk %}">Edit</a> |
+            <a href="{% url 'delete_incident' incident.pk %}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

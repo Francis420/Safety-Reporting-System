@@ -4,30 +4,83 @@
 
 {% block content %}
 <h2>Incident Reports</h2>
-<table>
-    <thead>
-        <tr>
-            <th>User</th>
-            <th>Category</th>
-            <th>Description</th>
-            <th>Location</th>
-            <th>Status</th>
-            <th>Created At</th>
-            <th>Updated At</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for incident in incidents %}
-        <tr>
-            <td>{{ incident.user.username }}</td>
-            <td>{{ incident.get_category_display }}</td>
-            <td>{{ incident.description }}</td>
-            <td>{{ incident.location }}</td>
-            <td>{{ incident.get_status_display }}</td>
-            <td>{{ incident.created_at }}</td>
-            <td>{{ incident.updated_at }}</td>
-        </tr>
+
+<form method="get" action="{% url 'admin_panel:incident_list' %}">
+    <input type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}">
+    <select name="category">
+        <option value="">All Categories</option>
+        {% for choice in incidents.first.CATEGORY_CHOICES %}
+        <option value="{{ choice.0 }}" {% if request.GET.category == choice.0 %}selected{% endif %}>
+            {{ choice.1 }}
+        </option>
         {% endfor %}
-    </tbody>
+    </select>
+    <select name="status">
+        <option value="">All Statuses</option>
+        {% for choice in incidents.first.STATUS_CHOICES %}
+        <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>
+            {{ choice.1 }}
+        </option>
+        {% endfor %}
+    </select>
+    <input type="date" name="start_date" value="{{ request.GET.start_date }}">
+    <input type="time" name="start_time" value="{{ request.GET.start_time }}">
+    <input type="date" name="end_date" value="{{ request.GET.end_date }}">
+    <input type="time" name="end_time" value="{{ request.GET.end_time }}">
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <tr>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Location</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    {% for incident in incidents %}
+    <tr>
+        <td>
+            <form method="post" action="{% url 'admin_panel:update_category' incident.pk %}" onsubmit="return confirmUpdate(this, 'category')">
+                {% csrf_token %}
+                <select name="category">
+                    {% for choice in incident.CATEGORY_CHOICES %}
+                    <option value="{{ choice.0 }}" {% if incident.category == choice.0 %}selected{% endif %}>
+                        {{ choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Update</button>
+            </form>
+        </td>
+        <td>{{ incident.description }}</td>
+        <td>{{ incident.location }}</td>
+        <td>
+            <form method="post" action="{% url 'admin_panel:update_status' incident.pk %}" onsubmit="return confirmUpdate(this, 'status')">
+                {% csrf_token %}
+                <select name="status">
+                    {% for choice in incident.STATUS_CHOICES %}
+                    <option value="{{ choice.0 }}" {% if incident.status == choice.0 %}selected{% endif %}>
+                        {{ choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Update</button>
+            </form>
+        </td>
+        <td>
+            <a href="{% url 'admin_panel:incident_detail' incident.pk %}">View Details</a>
+        </td>
+    </tr>
+    {% endfor %}
 </table>
+
+<script>
+function confirmUpdate(form, type) {
+    const selectElement = form.querySelector('select[name="' + type + '"]');
+    const selectedOption = selectElement.options[selectElement.selectedIndex].text;
+    return confirm(`Are you sure you want to update the ${type} to "${selectedOption}"?`);
+}
+</script>
+
 {% endblock %}

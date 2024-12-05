@@ -8,18 +8,30 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="{% static 'css/litera.min.css' %}">
 </head>
 <body>
     <header>
         <h1>Safety Reporting System</h1>
         <nav>
             <ul>
-                <li><a href="{% url 'home' %}">Home</a></li>
                 {% if user.is_authenticated %}
+                    {% if user.is_admin %}
+                        <li><a href="{% url 'admin_panel:dashboard' %}">Admin Dashboard</a></li>
+                        <li><a href="{% url 'admin_panel:incident_list' %}">Incident List</a></li>
+                        <li><a href="{% url 'admin_panel:user_list' %}">User List</a></li>
+                    {% else %}
+                        <li><a href="{% url 'user_dashboard' %}">User Dashboard</a></li>
+                        <li><a href="{% url 'report_incident' %}">Report Incident</a></li>
+                        <li><a href="{% url 'user_incident_list' %}">My Reports</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'update_profile' %}">Update Profile</a></li>
+                    <li><a href="{% url 'change_password' %}">Change Password</a></li>
                     <li><a href="{% url 'logout' %}">Logout</a></li>
+                    <li>Welcome, {{ user.display_name }}</li>
                 {% else %}
-                    <li><a href="{% url 'signup' %}">Sign Up</a></li>
                     <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'signup' %}">Sign Up</a></li>
                 {% endif %}
             </ul>
         </nav>

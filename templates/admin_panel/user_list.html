@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>User List</h2>
+<table>
+    <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Address</th>
+        <th>Phone Number</th>
+        <th>Actions</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.address }}</td>
+        <td>{{ user.phone_number }}</td>
+        <td>
+            <!-- Add actions like edit, delete here -->
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

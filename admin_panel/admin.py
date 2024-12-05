@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import IncidentReport
+from incidents.models import IncidentReport
 
 @admin.register(IncidentReport)
 class IncidentReportAdmin(admin.ModelAdmin):

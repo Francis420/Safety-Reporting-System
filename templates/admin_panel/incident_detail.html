@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Incident Detail{% endblock %}
+
+{% block content %}
+<h2>Incident Detail</h2>
+<table>
+    <tr>
+        <th>Category</th>
+        <td>{{ incident.get_category_display }}</td>
+    </tr>
+    <tr>
+        <th>Description</th>
+        <td>{{ incident.description }}</td>
+    </tr>
+    <tr>
+        <th>Location</th>
+        <td>{{ incident.location }}</td>
+    </tr>
+    <tr>
+        <th>Status</th>
+        <td>{{ incident.get_status_display }}</td>
+    </tr>
+    <tr>
+        <th>Reported By</th>
+        <td>{{ incident.user.username }}</td>
+    </tr>
+    <tr>
+        <th>Created At</th>
+        <td>{{ incident.created_at }}</td>
+    </tr>
+    <tr>
+        <th>Updated At</th>
+        <td>{{ incident.updated_at }}</td>
+    </tr>
+</table>
+
+<h3>Location Map</h3>
+<div id="map" style="height: 400px;"></div>
+
+<script>
+    var map = L.map('map').setView([{{ incident.latitude }}, {{ incident.longitude }}], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.marker([{{ incident.latitude }}, {{ incident.longitude }}]).addTo(map)
+        .bindPopup('<b>{{ incident.location }}</b><br>{{ incident.description }}')
+        .openPopup();
+</script>
+{% endblock %}

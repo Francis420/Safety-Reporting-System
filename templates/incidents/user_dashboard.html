@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>User Dashboard</h2>
+
+<form method="get">
+    <input type="text" name="q" placeholder="Search...">
+    <select name="category">
+        <option value="">All Categories</option>
+        {% for choice in incidents.model.CATEGORY_CHOICES %}
+        <option value="{{ choice.0 }}" {% if request.GET.category == choice.0 %}selected{% endif %}>
+            {{ choice.1 }}
+        </option>
+        {% endfor %}
+    </select>
+    <select name="status">
+        <option value="">All Statuses</option>
+        {% for choice in incidents.model.STATUS_CHOICES %}
+        <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>
+            {{ choice.1 }}
+        </option>
+        {% endfor %}
+    </select>
+    <input type="date" name="start_date">
+    <input type="time" name="start_time">
+    <input type="date" name="end_date">
+    <input type="time" name="end_time">
+    <button type="submit">Filter</button>
+</form>
+
+<div id="map" style="height: 400px;"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    var map = L.map('map').setView([12.8797, 121.7740], 6); // Set initial view to a global view
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var incidents = {{ incidents_json|safe }};
+    incidents.forEach(function(incident) {
+        var marker = L.marker([incident.latitude, incident.longitude]).addTo(map);
+        var detailUrl = "{% url 'user_incident_detail' 0 %}".replace('0', incident.id);
+        marker.bindPopup(`<b>${incident.category}</b><br>${incident.description}<br><a href="${detailUrl}">More details</a>`);
+    });
+</script>
+{% endblock %}
