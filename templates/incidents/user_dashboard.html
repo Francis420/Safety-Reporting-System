@@ -41,7 +41,7 @@
     var incidents = {{ incidents_json|safe }};
     incidents.forEach(function(incident) {
         var marker = L.marker([incident.latitude, incident.longitude]).addTo(map);
-        var detailUrl = "{% url 'user_incident_detail' 0 %}".replace('0', incident.id);
+        var detailUrl = "{% url 'incidents:user_incident_detail' 0 %}".replace('0', incident.id);
         marker.bindPopup(`<b>${incident.category}</b><br>${incident.description}<br><a href="${detailUrl}">More details</a>`);
     });
 </script>

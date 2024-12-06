@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'leaflet',
 ]
 
+NOTIFICATIONS_USE_JSONFIELD = True
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect
 from .models import Notification
 
-def notifications_list_view(request):
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'notifications/notifications_list.html', {'notifications': notifications})
+def notifications_view(request):
+    notifications = request.user.notifications.filter(read=False)
+    return render(request, 'notifications.html', {'notifications': notifications})
 
-def mark_as_read_view(request, notification_id):
-    notification = Notification.objects.get(id=notification_id, user=request.user)
-    notification.read = True
-    notification.save()
-    return redirect('notifications_list')
+def mark_notification_as_read(request, pk):
+    notification = Notification.objects.get(pk=pk)
+    notification.mark_as_read()
+    return redirect('notifications')

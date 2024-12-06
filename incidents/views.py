@@ -15,7 +15,7 @@ def report_incident_view(request):
             incident = form.save(commit=False)
             incident.user = request.user
             incident.save()
-            return redirect('user_incident_detail', pk=incident.pk)
+            return redirect('incidents:user_incident_detail', pk=incident.pk)
     else:
         form = IncidentReportForm()
     return render(request, 'incidents/report_incident.html', {'form': form})
@@ -37,7 +37,7 @@ def update_incident_view(request, pk):
         form = IncidentReportForm(request.POST, instance=incident)
         if form.is_valid():
             form.save()
-            return redirect('user_incident_detail', pk=incident.pk)
+            return redirect('incidents:user_incident_detail', pk=incident.pk)
     else:
         form = IncidentReportForm(instance=incident)
     return render(request, 'incidents/update_incident.html', {'form': form, 'incident': incident})
@@ -47,7 +47,7 @@ def delete_incident_view(request, pk):
     incident = get_object_or_404(IncidentReport, pk=pk, user=request.user)
     if request.method == 'POST':
         incident.delete()
-        return redirect('user_incident_list')
+        return redirect('incidents:user_incident_list')
     return render(request, 'incidents/delete_incident.html', {'incident': incident})
 
 @login_required

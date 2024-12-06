@@ -4,6 +4,8 @@ from .views import (
     update_incident_view, delete_incident_view, user_dashboard_view
 )
 
+app_name = 'incidents'
+
 urlpatterns = [
     path('report/', report_incident_view, name='report_incident'),
     path('reported_incidents/', user_incident_list_view, name='user_incident_list'),

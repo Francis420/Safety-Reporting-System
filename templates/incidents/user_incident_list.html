@@ -19,9 +19,9 @@
         <td>{{ incident.location }}</td>
         <td>{{ incident.get_status_display }}</td>
         <td>
-            <a href="{% url 'user_incident_detail' incident.pk %}">View</a> |
-            <a href="{% url 'update_incident' incident.pk %}">Edit</a> |
-            <a href="{% url 'delete_incident' incident.pk %}">Delete</a>
+            <a href="{% url 'incidents:user_incident_detail' incident.pk %}">View</a> |
+            <a href="{% url 'incidents:update_incident' incident.pk %}">Edit</a> |
+            <a href="{% url 'incidents:delete_incident' incident.pk %}">Delete</a>
         </td>
     </tr>
     {% endfor %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Notifications</h2>
+<ul>
+    {% for notification in notifications %}
+        <li style="{% if not notification.read %}font-weight: bold;{% endif %}">
+            {% if request.user.is_admin %}
+                <a href="{% url 'admin_panel:incident_detail' notification.target.id %}">
+                    {{ notification.target.user.username }} submitted a new report: {{ notification.target.category }} - {{ notification.target.description }} at {{ notification.target.location }}
+                </a>
+            {% else %}
+                <a href="{% url 'incidents:user_incident_detail' notification.target.id %}">
+                    {{ notification.verb }}
+                </a>
+            {% endif %}
+            <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Mark as read</button>
+            </form>
+        </li>
+    {% empty %}
+        <li>No new notifications.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

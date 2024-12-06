@@ -89,6 +89,12 @@ def user_list_view(request):
 @user_passes_test(is_admin)
 def incident_detail_view(request, pk):
     incident = get_object_or_404(IncidentReport, pk=pk)
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(IncidentReport.STATUS_CHOICES):
+            incident.status = new_status
+            incident.save()
+            return redirect('admin_panel:incident_detail', pk=pk)
     return render(request, 'admin_panel/incident_detail.html', {'incident': incident})
 
 @login_required

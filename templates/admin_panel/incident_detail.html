@@ -35,6 +35,18 @@
     </tr>
 </table>
 
+<h3>Update Status</h3>
+<form method="post" action="{% url 'admin_panel:update_status' incident.id %}">
+    {% csrf_token %}
+    <label for="status">Status:</label>
+    <select name="status" id="status">
+        {% for key, value in incident.STATUS_CHOICES %}
+            <option value="{{ key }}" {% if incident.status == key %}selected{% endif %}>{{ value }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Update Status</button>
+</form>
+
 <h3>Location Map</h3>
 <div id="map" style="height: 400px;"></div>
 

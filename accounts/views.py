@@ -29,7 +29,7 @@ def login_view(request):
             if user.is_admin:
                 return redirect(reverse('admin_panel:dashboard'))
             else:
-                return redirect(reverse('user_dashboard'))
+                return redirect(reverse('incidents:user_dashboard'))
     else:
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
