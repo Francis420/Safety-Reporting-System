@@ -43,5 +43,31 @@
     <footer>
         <p>&copy; 2024 Safety Reporting System</p>
     </footer>
+
+    {% if user.is_authenticated %}
+    <script>
+        const userId = "{{ user.id }}";
+        const notificationSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/notifications/'
+        );
+
+        notificationSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = data.message;
+            const notificationList = document.getElementById('notification-list');
+            const newNotification = document.createElement('li');
+            newNotification.innerHTML = message;
+            notificationList.prepend(newNotification);
+
+            // Play sound notification
+            const audio = new Audio('{% static "sound/notification.mp3" %}');
+            audio.play();
+        };
+
+        notificationSocket.onclose = function(e) {
+            console.error('Notification socket closed unexpectedly');
+        };
+    </script>
+    {% endif %}
 </body>
 </html>

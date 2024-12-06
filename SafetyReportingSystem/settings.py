@@ -49,7 +49,10 @@ INSTALLED_APPS = [
     'help',
     'about',
     'leaflet',
+    'channels',
 ]
+
+ASGI_APPLICATION = 'SafetyReportingSystem.asgi.application'
 
 NOTIFICATIONS_USE_JSONFIELD = True
 
