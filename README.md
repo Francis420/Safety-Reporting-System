@@ -1,0 +1,1 @@
+The Neighborhood Safety Reporting System is a web-based application designed to enable residents to report safety concerns and incidents in their neighborhoods. This system aims to promote safer communities by allowing residents to submit reports of unsafe conditions, such as crimes, hazards, or suspicious activities.
