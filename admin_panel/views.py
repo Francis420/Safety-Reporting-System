@@ -12,20 +12,34 @@ def is_admin(user):
     return user.is_admin
 
 def analytics_view(request):
+    # Get filter parameters
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+
+    # Filter incidents based on the provided parameters
+    incidents = IncidentReport.objects.all()
+    if start_date and end_date:
+        start_datetime = datetime.strptime(f"{start_date} {start_time or '00:00'}", '%Y-%m-%d %H:%M')
+        end_datetime = datetime.strptime(f"{end_date} {end_time or '23:59'}", '%Y-%m-%d %H:%M')
+        incidents = incidents.filter(created_at__range=(start_datetime, end_datetime))
+
     # Aggregate data for analytics
-    category_data = IncidentReport.objects.values('category').annotate(count=Count('category'))
-    status_data = IncidentReport.objects.values('status').annotate(count=Count('status'))
-    monthly_data = IncidentReport.objects.extra(select={'month': "strftime('%%Y-%%m', created_at)"}).values('month').annotate(count=Count('id')).order_by('month')
+    category_data = incidents.values('category').annotate(count=Count('category'))
+    monthly_data = incidents.extra(select={'month': "DATE_FORMAT(created_at, '%%Y-%%m')"}).values('month', 'category').annotate(count=Count('id')).order_by('month', 'category')
 
     # Convert data to JSON for use in JavaScript
     category_data_json = json.dumps(list(category_data))
-    status_data_json = json.dumps(list(status_data))
     monthly_data_json = json.dumps(list(monthly_data))
 
     return render(request, 'admin_panel/analytics.html', {
         'category_data': category_data_json,
-        'status_data': status_data_json,
         'monthly_data': monthly_data_json,
+        'start_date': start_date,
+        'end_date': end_date,
+        'start_time': start_time,
+        'end_time': end_time,
     })
 
 @require_POST
