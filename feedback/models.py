@@ -1,10 +1,12 @@
 from django.db import models
-from accounts.models import CustomUser
+from django.contrib.auth import get_user_model
 
-class UserFeedback(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    feedback = models.TextField()
+User = get_user_model()
+
+class Feedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    feedback_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Feedback from {self.user.username} at {self.created_at}"
+        return f"Feedback from {self.user.username}"

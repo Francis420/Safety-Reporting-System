@@ -1,7 +1,7 @@
 from django import forms
-from .models import UserFeedback
+from .models import Feedback
 
-class UserFeedbackForm(forms.ModelForm):
+class FeedbackForm(forms.ModelForm):
     class Meta:
-        model = UserFeedback
-        fields = ['feedback']
+        model = Feedback
+        fields = ['feedback_text']

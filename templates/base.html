@@ -9,6 +9,18 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="{% static 'css/litera.min.css' %}">
+    <style>
+        .badge {
+            background-color: red;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 50%;
+            font-size: 14px;
+            position: relative;
+            top: -10px;
+            right: -10px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -27,8 +39,12 @@
                     {% endif %}
                     <li><a href="{% url 'update_profile' %}">Update Profile</a></li>
                     <li><a href="{% url 'change_password' %}">Change Password</a></li>
+                    <li>
+                        <a href="{% url 'notifications' %}">
+                            Notifications <span id="notification-count" class="badge">{{ notification_count }}</span>
+                        </a>
+                    </li>
                     <li><a href="{% url 'logout' %}">Logout</a></li>
-                    <li><a href="{% url 'notifications' %}">Notifications</a></li>
                     <li>Welcome, {{ user.display_name }}</li>
                 {% else %}
                     <li><a href="{% url 'login' %}">Login</a></li>
@@ -62,6 +78,10 @@
             // Play sound notification
             const audio = new Audio('{% static "sound/notification.mp3" %}');
             audio.play();
+
+            // Update notification count
+            const notificationCount = document.getElementById('notification-count');
+            notificationCount.textContent = parseInt(notificationCount.textContent) + 1;
         };
 
         notificationSocket.onclose = function(e) {
