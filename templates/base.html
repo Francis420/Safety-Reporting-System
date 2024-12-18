@@ -1,4 +1,6 @@
 {% load static %}
+{% load crispy_forms_tags %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +9,9 @@
     <title>{% block title %}Safety Reporting System{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/minty.min.css' %}">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="{% static 'css/litera.min.css' %}">
     <style>
         .badge {
             background-color: red;
@@ -20,43 +23,62 @@
             top: -10px;
             right: -10px;
         }
+        .btn-custom {
+            background-color: #28a745;
+            color: white;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-custom:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Safety Reporting System</h1>
-        <nav>
-            <ul>
-                {% if user.is_authenticated %}
-                    {% if user.is_admin %}
-                        <li><a href="{% url 'admin_panel:dashboard' %}">Admin Dashboard</a></li>
-                        <li><a href="{% url 'admin_panel:incident_list' %}">Incident List</a></li>
-                        <li><a href="{% url 'admin_panel:user_list' %}">User List</a></li>
-                    {% else %}
-                        <li><a href="{% url 'incidents:user_dashboard' %}">User Dashboard</a></li>
-                        <li><a href="{% url 'incidents:report_incident' %}">Report Incident</a></li>
-                        <li><a href="{% url 'incidents:user_incident_list' %}">My Reports</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'update_profile' %}">Update Profile</a></li>
-                    <li><a href="{% url 'change_password' %}">Change Password</a></li>
-                    <li>
-                        <a href="{% url 'notifications' %}">
-                            Notifications <span id="notification-count" class="badge">{{ notification_count }}</span>
-                        </a>
-                    </li>
-                    <li><a href="{% url 'logout' %}">Logout</a></li>
-                    <li>Welcome, {{ user.display_name }}</li>
-                {% else %}
-                    <li><a href="{% url 'login' %}">Login</a></li>
-                    <li><a href="{% url 'signup' %}">Sign Up</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+    <header class="bg-primary text-white p-3">
+        <div class="container">
+            <h1>Safety Reporting System</h1>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        {% if user.is_authenticated %}
+                            {% if user.is_admin %}
+                                <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:dashboard' %}">Admin Dashboard</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:incident_list' %}">Incident List</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:analytics' %}">Analytics</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:user_list' %}">User List</a></li>
+                            {% else %}
+                                <li class="nav-item"><a class="nav-link" href="{% url 'incidents:user_dashboard' %}">User Dashboard</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'incidents:report_incident' %}">Report Incident</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'incidents:user_incident_list' %}">My Reports</a></li>
+                            {% endif %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'update_profile' %}">Update Profile</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'change_password' %}">Change Password</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'notifications' %}">
+                                    Notifications <span id="notification-count" class="badge">{{ notification_count }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                            <li class="nav-item">Welcome, {{ user.display_name }}</li>
+                        {% else %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </div>
     </header>
-    <main>
+    <main class="container mt-4">
         {% block content %}{% endblock %}
     </main>
-    <footer>
+    <footer class="bg-light text-center py-3">
         <p>&copy; 2024 Safety Reporting System</p>
     </footer>
 
@@ -89,5 +111,8 @@
         };
     </script>
     {% endif %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

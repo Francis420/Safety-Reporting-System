@@ -46,11 +46,15 @@ INSTALLED_APPS = [
     'notifications',
     'audit_trail',
     'feedback',
+    'crispy_forms',
     'help',
     'about',
     'leaflet',
     'channels',
+    'crispy_bootstrap4'
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 CHANNEL_LAYERS = {
     'default': {

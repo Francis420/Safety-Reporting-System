@@ -3,10 +3,15 @@
 {% block title %}User Feedback{% endblock %}
 
 {% block content %}
-<h2>User Feedback</h2>
-<ul>
-    {% for feedback in feedbacks %}
-    <li>{{ feedback.user.username }}: {{ feedback.feedback }} ({{ feedback.created_at }})</li>
-    {% endfor %}
-</ul>
+<div class="container mt-5">
+    <h2 class="mb-4">User Feedback</h2>
+    <ul class="list-group">
+        {% for feedback in feedbacks %}
+        <li class="list-group-item">
+            <strong>{{ feedback.user.username }}</strong>: {{ feedback.feedback }}
+            <span class="text-muted float-right">{{ feedback.created_at }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

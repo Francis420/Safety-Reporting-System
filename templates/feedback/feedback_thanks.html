@@ -3,6 +3,13 @@
 {% block title %}Thank You{% endblock %}
 
 {% block content %}
-<h2>Thank You for Your Feedback!</h2>
-<p>Your feedback has been submitted successfully.</p>
+<div class="container mt-5">
+    <div class="alert alert-success" role="alert">
+        <h2 class="alert-heading">Thank You for Your Feedback!</h2>
+        <p>Your feedback has been submitted successfully.</p>
+        <hr>
+        <p class="mb-0">We appreciate your input and will use it to improve our services.</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-primary">Back to Home</a>
+</div>
 {% endblock %}

@@ -1,34 +1,38 @@
 {% extends "base.html" %}
 
+{% block title %}User Dashboard{% endblock %}
+
 {% block content %}
-<h2>User Dashboard</h2>
+<div class="container mt-5">
+    <h2 class="mb-4">User Dashboard</h2>
 
-<form method="get">
-    <input type="text" name="q" placeholder="Search...">
-    <select name="category">
-        <option value="">All Categories</option>
-        {% for choice in incidents.model.CATEGORY_CHOICES %}
-        <option value="{{ choice.0 }}" {% if request.GET.category == choice.0 %}selected{% endif %}>
-            {{ choice.1 }}
-        </option>
-        {% endfor %}
-    </select>
-    <select name="status">
-        <option value="">All Statuses</option>
-        {% for choice in incidents.model.STATUS_CHOICES %}
-        <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>
-            {{ choice.1 }}
-        </option>
-        {% endfor %}
-    </select>
-    <input type="date" name="start_date">
-    <input type="time" name="start_time">
-    <input type="date" name="end_date">
-    <input type="time" name="end_time">
-    <button type="submit">Filter</button>
-</form>
+    <form method="get" class="form-inline mb-4">
+        <input type="text" name="q" class="form-control mr-2 mb-2" placeholder="Search...">
+        <select name="category" class="form-control mr-2 mb-2">
+            <option value="">All Categories</option>
+            {% for choice in incidents.model.CATEGORY_CHOICES %}
+            <option value="{{ choice.0 }}" {% if request.GET.category == choice.0 %}selected{% endif %}>
+                {{ choice.1 }}
+            </option>
+            {% endfor %}
+        </select>
+        <select name="status" class="form-control mr-2 mb-2">
+            <option value="">All Statuses</option>
+            {% for choice in incidents.model.STATUS_CHOICES %}
+            <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>
+                {{ choice.1 }}
+            </option>
+            {% endfor %}
+        </select>
+        <input type="date" name="start_date" class="form-control mr-2 mb-2">
+        <input type="time" name="start_time" class="form-control mr-2 mb-2">
+        <input type="date" name="end_date" class="form-control mr-2 mb-2">
+        <input type="time" name="end_time" class="form-control mr-2 mb-2">
+        <button type="submit" class="btn btn-primary mb-2">Filter</button>
+    </form>
 
-<div id="map" style="height: 400px;"></div>
+    <div id="map" style="height: 400px;" class="mb-4"></div>
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>

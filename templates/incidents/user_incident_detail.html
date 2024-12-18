@@ -3,40 +3,52 @@
 {% block title %}Incident Detail{% endblock %}
 
 {% block content %}
-<h2>Incident Detail</h2>
-<table>
-    <tr>
-        <th>Category</th>
-        <td>{{ incident.get_category_display }}</td>
-    </tr>
-    <tr>
-        <th>Description</th>
-        <td>{{ incident.description }}</td>
-    </tr>
-    <tr>
-        <th>Location</th>
-        <td>{{ incident.location }}</td>
-    </tr>
-    <tr>
-        <th>Status</th>
-        <td>{{ incident.get_status_display }}</td>
-    </tr>
-    <tr>
-        <th>Reported By</th>
-        <td>{{ incident.user.username }}</td>
-    </tr>
-    <tr>
-        <th>Created At</th>
-        <td>{{ incident.created_at }}</td>
-    </tr>
-    <tr>
-        <th>Updated At</th>
-        <td>{{ incident.updated_at }}</td>
-    </tr>
-</table>
+<div class="container mt-5">
+    <h2 class="mb-4">Incident Detail</h2>
+    <table class="table table-bordered table-hover">
+        <tbody>
+            <tr>
+                <th>Category</th>
+                <td>{{ incident.get_category_display }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ incident.description }}</td>
+            </tr>
+            <tr>
+                <th>Location</th>
+                <td>{{ incident.location }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ incident.get_status_display }}</td>
+            </tr>
+            <tr>
+                <th>Reported By</th>
+                <td>{{ incident.user.username }}</td>
+            </tr>
+            <tr>
+                <th>Created At</th>
+                <td>{{ incident.created_at }}</td>
+            </tr>
+            <tr>
+                <th>Updated At</th>
+                <td>{{ incident.updated_at }}</td>
+            </tr>
+        </tbody>
+    </table>
 
-<h3>Location Map</h3>
-<div id="map" style="height: 400px;"></div>
+    <h3 class="mt-4">Location Map</h3>
+    <div id="map" style="height: 400px;" class="mb-4"></div>
+
+    <a href="{% url 'incidents:update_incident' incident.id %}" class="btn btn-primary">Update</a>
+    <form action="{% url 'incidents:delete_incident' incident.id %}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this incident?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+    <a href="{% url 'incidents:user_incident_list' %}" class="btn btn-secondary">Back to List</a>
+    <a href="{% url 'incidents:user_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
@@ -50,15 +62,4 @@
         .bindPopup('<b>{{ incident.location }}</b><br>{{ incident.description }}')
         .openPopup();
 </script>
-
-<a href="{% url 'incidents:update_incident' incident.id %}" class="btn btn-primary">Update</a>
-
-<form action="{% url 'incidents:delete_incident' incident.id %}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this incident?');">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Delete</button>
-</form>
-
-<a href="{% url 'incidents:user_incident_list' %}" class="btn btn-secondary">Back to List</a>
-<a href="{% url 'incidents:user_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
-
 {% endblock %}

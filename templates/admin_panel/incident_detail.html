@@ -3,52 +3,56 @@
 {% block title %}Incident Detail{% endblock %}
 
 {% block content %}
-<h2>Incident Detail</h2>
-<table>
-    <tr>
-        <th>Category</th>
-        <td>{{ incident.get_category_display }}</td>
-    </tr>
-    <tr>
-        <th>Description</th>
-        <td>{{ incident.description }}</td>
-    </tr>
-    <tr>
-        <th>Location</th>
-        <td>{{ incident.location }}</td>
-    </tr>
-    <tr>
-        <th>Status</th>
-        <td>{{ incident.get_status_display }}</td>
-    </tr>
-    <tr>
-        <th>Reported By</th>
-        <td>{{ incident.user.username }}</td>
-    </tr>
-    <tr>
-        <th>Created At</th>
-        <td>{{ incident.created_at }}</td>
-    </tr>
-    <tr>
-        <th>Updated At</th>
-        <td>{{ incident.updated_at }}</td>
-    </tr>
-</table>
+<div class="container mt-5">
+    <h2 class="mb-4">Incident Detail</h2>
+    <table class="table table-bordered">
+        <tr>
+            <th>Category</th>
+            <td>{{ incident.get_category_display }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ incident.description }}</td>
+        </tr>
+        <tr>
+            <th>Location</th>
+            <td>{{ incident.location }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>{{ incident.get_status_display }}</td>
+        </tr>
+        <tr>
+            <th>Reported By</th>
+            <td>{{ incident.user.username }}</td>
+        </tr>
+        <tr>
+            <th>Created At</th>
+            <td>{{ incident.created_at }}</td>
+        </tr>
+        <tr>
+            <th>Updated At</th>
+            <td>{{ incident.updated_at }}</td>
+        </tr>
+    </table>
 
-<h3>Update Status</h3>
-<form method="post" action="{% url 'admin_panel:update_status' incident.id %}">
-    {% csrf_token %}
-    <label for="status">Status:</label>
-    <select name="status" id="status">
-        {% for key, value in incident.STATUS_CHOICES %}
-            <option value="{{ key }}" {% if incident.status == key %}selected{% endif %}>{{ value }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit">Update Status</button>
-</form>
+    <h3 class="mt-4">Update Status</h3>
+    <form method="post" action="{% url 'admin_panel:update_status' incident.id %}" class="mb-4">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="status">Status:</label>
+            <select name="status" id="status" class="form-control">
+                {% for key, value in incident.STATUS_CHOICES %}
+                <option value="{{ key }}" {% if incident.status == key %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Status</button>
+    </form>
 
-<h3>Location Map</h3>
-<div id="map" style="height: 400px;"></div>
+    <h3>Location Map</h3>
+    <div id="map" style="height: 400px;"></div>
+</div>
 
 <script>
     var map = L.map('map').setView([{{ incident.latitude }}, {{ incident.longitude }}], 13);

@@ -1,19 +1,22 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block title %}Update Incident{% endblock %}
 
 {% block content %}
-<h2>Update Incident</h2>
-<form id="updateForm" method="post" onsubmit="return confirmUpdate();">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="button" onclick="getLocation()">Get Current Location</button>
-    <input type="hidden" id="latitude" name="latitude" value="{{ incident.latitude }}">
-    <input type="hidden" id="longitude" name="longitude" value="{{ incident.longitude }}">
-    <div id="map" style="height: 400px; width: 100%;"></div>
-    <button type="submit">Update</button>
-    <button type="button" onclick="window.history.back()">Cancel</button>
-</form>
+<div class="container mt-5">
+    <h2 class="mb-4">Update Incident</h2>
+    <form id="updateForm" method="post" onsubmit="return confirmUpdate();">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="button" class="btn btn-custom mb-3" onclick="getLocation()">Get Current Location</button>
+        <input type="hidden" id="latitude" name="latitude" value="{{ incident.latitude }}">
+        <input type="hidden" id="longitude" name="longitude" value="{{ incident.longitude }}">
+        <div id="map" style="height: 400px; width: 100%;" class="mb-3"></div>
+        <button type="submit" class="btn btn-custom">Update</button>
+        <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+    </form>
+</div>
 
 <script>
 let map;

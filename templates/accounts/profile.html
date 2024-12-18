@@ -1,16 +1,25 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<h2>Profile</h2>
-<p><strong>Username:</strong> {{ user.username }}</p>
-<p><strong>Display Name:</strong> {{ user.display_name }}</p>
-<p><strong>First Name:</strong> {{ user.first_name }}</p>
-<p><strong>Last Name:</strong> {{ user.last_name }}</p>
-<p><strong>Email:</strong> {{ user.email }}</p>
-<p><strong>Address:</strong> {{ user.address }}</p>
-<p><strong>Phone Number:</strong> {{ user.phone_number }}</p>
-<a href="{% url 'update_profile' %}" class="btn btn-primary">Update Profile</a>
-<a href="{% url 'change_password' %}" class="btn btn-secondary">Change Password</a>
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Profile</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Display Name:</strong> {{ user.display_name }}</p>
+            <p><strong>First Name:</strong> {{ user.first_name }}</p>
+            <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Address:</strong> {{ user.address }}</p>
+            <p><strong>Phone Number:</strong> {{ user.phone_number }}</p>
+            <a href="{% url 'update_profile' %}" class="btn btn-success mt-3">Update Profile</a>
+            <a href="{% url 'change_password' %}" class="btn btn-warning mt-3">Change Password</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

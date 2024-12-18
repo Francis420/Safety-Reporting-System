@@ -3,27 +3,37 @@
 {% block title %}Safety Analytics{% endblock %}
 
 {% block content %}
-<h2>Safety Analytics</h2>
+<div class="container mt-5">
+    <h2 class="mb-4">Safety Analytics</h2>
 
-<!-- Unified Filter for Both Charts -->
-<form method="get" action="{% url 'admin_panel:analytics' %}">
-    <input type="date" name="start_date" value="{{ start_date }}">
-    <input type="time" name="start_time" value="{{ start_time }}">
-    <input type="date" name="end_date" value="{{ end_date }}">
-    <input type="time" name="end_time" value="{{ end_time }}">
-    <button type="submit">Filter by Date/Time</button>
-</form>
+    <!-- Unified Filter for Both Charts -->
+    <form method="get" action="{% url 'admin_panel:analytics' %}" class="mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <input type="time" name="start_time" value="{{ start_time }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <input type="time" name="end_time" value="{{ end_time }}" class="form-control">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Filter by Date/Time</button>
+    </form>
 
-<div>
-    <h3>Incidents by Category</h3>
-    <!-- Change the size of this chart by adjusting the width and height -->
-    <canvas id="categoryChart" width="800" height="400"></canvas>
-</div>
+    <div class="mb-5">
+        <h3>Incidents by Category</h3>
+        <canvas id="categoryChart" width="800" height="400"></canvas>
+    </div>
 
-<div>
-    <h3>Monthly Incident Trends</h3>
-    <!-- Change the size of this chart by adjusting the width and height -->
-    <canvas id="monthlyChart" width="800" height="400"></canvas>
+    <div>
+        <h3>Monthly Incident Trends</h3>
+        <canvas id="monthlyChart" width="800" height="400"></canvas>
+    </div>
 </div>
 
 <!-- Include Chart.js and the date adapter -->

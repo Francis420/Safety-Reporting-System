@@ -3,6 +3,24 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h2>Welcome to the Safety Reporting System</h2>
-<p>This is the homepage.</p>
+<div class="container mt-5">
+    <div class="text-center">
+        <h2 class="text-success">Welcome to the Safety Reporting System</h2>
+        <p class="lead">We're glad to have you here! This platform allows you to report safety concerns and incidents in your neighborhood easily and efficiently.</p>
+        <p>The Neighborhood Safety Reporting System is designed to enable residents to report safety concerns and incidents in their neighborhoods. This system aims to promote safer communities by allowing residents to submit reports of unsafe conditions, such as crimes, hazards, or suspicious activities.</p>
+        <p>Our key features include:</p>
+        <ul class="list-unstyled">
+            <li><strong>User Registration and Login:</strong> Create an account to securely submit safety reports.</li>
+            <li><strong>Incident Reporting:</strong> Report various safety incidents such as crimes, traffic accidents, or unsafe conditions.</li>
+            <li><strong>Geolocation of Incidents:</strong> Pinpoint the exact location of reported incidents using a map interface.</li>
+            <li><strong>Status Tracking:</strong> Track the status of your submitted reports, including updates on actions taken by authorities.</li>
+            <li><strong>Admin Panel for Authorities:</strong> Local authorities can view and manage submitted reports, categorize incidents, and update report statuses.</li>
+            <li><strong>Safety Dashboard and Analytics:</strong> Visualize safety data and trends to understand common concerns in the area.</li>
+            <li><strong>Notifications and Alerts:</strong> Receive notifications when important updates are made regarding reports.</li>
+        </ul>
+        <p>Feel free to explore the features and help us create a safer community together.</p>
+        <p>If you have an account, please <a href="{% url 'login' %}" class="btn btn-primary mt-3">Login</a> to access all features.</p>
+        <p>If you don't have an account, you can <a href="{% url 'signup' %}" class="btn btn-secondary mt-3">Sign Up</a> to get started.</p>
+    </div>
+</div>
 {% endblock %}
