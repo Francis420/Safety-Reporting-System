@@ -34,6 +34,9 @@
         .btn-custom:hover {
             background-color: #218838;
         }
+        .welcome-text {
+            color: black;
+        }
     </style>
 </head>
 <body>
@@ -47,6 +50,7 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ml-auto">
                         {% if user.is_authenticated %}
+                            <li class="nav-item welcome-text">Welcome, {{ user.display_name }}!!</li>
                             {% if user.is_admin %}
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:dashboard' %}">Admin Dashboard</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:incident_list' %}">Incident List</a></li>
@@ -64,8 +68,7 @@
                                     Notifications <span id="notification-count" class="badge">{{ notification_count }}</span>
                                 </a>
                             </li>
-                            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
-                            <li class="nav-item">Welcome, {{ user.display_name }}</li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to logout?');">Logout</a></li>
                         {% else %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>

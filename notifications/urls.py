@@ -4,4 +4,5 @@ from . import views
 urlpatterns = [
     path('', views.notifications_view, name='notifications'),
     path('mark_as_read/<int:pk>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('mark_as_unread/<int:pk>/', views.mark_notification_as_unread, name='mark_notification_as_unread'),
 ]

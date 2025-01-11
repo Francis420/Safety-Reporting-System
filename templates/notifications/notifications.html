@@ -34,10 +34,16 @@
                                 {% endif %}
                                 <div class="text-muted small">{{ notification.timestamp|date:"F j, Y, g:i a" }}</div>
                             </div>
-                            <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
-                            </form>
+                            <div>
+                                <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+                                </form>
+                                <form action="{% url 'mark_notification_as_unread' notification.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Mark as unread</button>
+                                </form>
+                            </div>
                         </li>
                         {% empty %}
                         <li class="list-group-item">No new notifications.</li>

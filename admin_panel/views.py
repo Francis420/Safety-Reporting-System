@@ -8,6 +8,34 @@ import json
 from django.views.decorators.http import require_POST
 from django.db.models import Count
 
+
+def is_admin(user):
+    return user.is_admin
+
+@login_required
+@user_passes_test(is_admin)
+@require_POST
+def toggle_account_status_view(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    new_remark = request.POST.get('remark')
+    user.is_active = not user.is_active  # Toggle the active status
+    if user.remarks:
+        user.remarks += f"\n{new_remark}"
+    else:
+        user.remarks = new_remark
+    user.save()
+    return redirect('admin_panel:user_list')
+
+@login_required
+@user_passes_test(is_admin)
+@require_POST
+def update_remarks_view(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    new_remark = request.POST.get('remark')
+    user.remarks = new_remark
+    user.save()
+    return redirect('admin_panel:user_list')
+
 def is_admin(user):
     return user.is_admin
 
@@ -83,6 +111,16 @@ def incident_list_view(request):
 @user_passes_test(is_admin)
 def user_list_view(request):
     users = CustomUser.objects.all()
+    
+    query = request.GET.get('q')
+    if query:
+        users = users.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query) |
+            Q(address__icontains=query) |
+            Q(phone_number__icontains=query)
+        )
+    
     return render(request, 'admin_panel/user_list.html', {'users': users})
 
 @login_required
