@@ -18,7 +18,7 @@
                                 {% if request.user.is_admin %}
                                     {% if notification.receiver and notification.receiver.id %}
                                         <a href="{% url 'admin_panel:incident_detail' notification.receiver.id %}">
-                                            {{ notification.receiver.user.username }} submitted a new report: {{ notification.receiver.category }} - {{ notification.receiver.description }} at {{ notification.receiver.location }}
+                                            {{ notification.receiver.username }} submitted a new report: {{ notification.receiver.category }} - {{ notification.receiver.description }} at {{ notification.receiver.location }}
                                         </a>
                                     {% else %}
                                         <span>Notification details not available</span>
@@ -34,9 +34,11 @@
                                 {% endif %}
                                 <div class="text-muted small">{{ notification.timestamp|date:"F j, Y, g:i a" }}</div>
                             </div>
-                            <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" style="display:inline;">
+                            <form action="{% if notification.read %}{% url 'mark_notification_as_unread' notification.id %}{% else %}{% url 'mark_notification_as_read' notification.id %}{% endif %}" method="post" style="display:inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    {% if notification.read %}Mark as unread{% else %}Mark as read{% endif %}
+                                </button>
                             </form>
                         </li>
                         {% empty %}
