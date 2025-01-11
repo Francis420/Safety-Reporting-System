@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Feedback Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Feedback Detail</h2>
+    <div class="card">
+        <div class="card-header">
+            <strong>{{ feedback.username }}</strong>
+            <span class="text-muted float-right">{{ feedback.created_at|date:"F j, Y, g:i a" }}</span>
+        </div>
+        <div class="card-body">
+            <p>{{ feedback.feedback_message }}</p>
+        </div>
+    </div>
+    <a href="{% url 'feedback_list' %}" class="btn btn-primary mt-3">Back to Feedback List</a>
+</div>
+{% endblock %}

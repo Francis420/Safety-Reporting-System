@@ -56,10 +56,12 @@
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:incident_list' %}">Incident List</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:analytics' %}">Analytics</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:user_list' %}">User List</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'feedback_list' %}">Feedback List</a></li>
                             {% else %}
                                 <li class="nav-item"><a class="nav-link" href="{% url 'incidents:user_dashboard' %}">User Dashboard</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'incidents:report_incident' %}">Report Incident</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'incidents:user_incident_list' %}">My Reports</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'submit_feedback' %}">Submit Feedback</a></li>
                             {% endif %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'update_profile' %}">Update Profile</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'change_password' %}">Change Password</a></li>

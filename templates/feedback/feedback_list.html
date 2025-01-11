@@ -5,13 +5,36 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4">User Feedback</h2>
+    <form method="get" action="{% url 'feedback_list' %}">
+        <div class="input-group mb-3">
+            <input type="text" name="q" class="form-control" placeholder="Search feedback..." value="{{ query }}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label for="from">From:</label>
+                <input type="datetime-local" name="from" id="from" class="form-control" value="{{ from_datetime }}">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="to">To:</label>
+                <input type="datetime-local" name="to" id="to" class="form-control" value="{{ to_datetime }}">
+            </div>
+            <div class="form-group col-md-3 align-self-end">
+                <button class="btn btn-primary" type="submit">Apply Filters</button>
+            </div>
+        </div>
+    </form>
     <ul class="list-group">
         {% for feedback in feedbacks %}
-        <li class="list-group-item">
-            <strong>{{ feedback.user.username }}</strong>: {{ feedback.feedback }}
-            <span class="text-muted float-right">{{ feedback.created_at }}</span>
-        </li>
-        {% endfor %}
+    <li class="list-group-item">
+        <a href="{% url 'feedback_detail' feedback.id %}">
+            <strong>{{ feedback.username }}</strong>: {{ feedback.feedback_message|truncatewords:10 }}
+        </a>
+        <span class="text-muted float-right">{{ feedback.created_at|date:"F j, Y, g:i a" }}</span>
+    </li>
+{% endfor %}
     </ul>
 </div>
 {% endblock %}
