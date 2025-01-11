@@ -32,13 +32,17 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            user = authenticate(username=data['username'], password=data['password'])
-            if user is not None:
-                login(request, user)
-                if user.is_admin:
-                    return redirect(reverse('admin_panel:dashboard'))
-                else:
-                    return redirect(reverse('incidents:user_dashboard'))
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM accounts_customuser WHERE username = %s", [data['username']])
+                user_row = cursor.fetchone()
+                if user_row:
+                    user = authenticate(username=data['username'], password=data['password'])
+                    if user is not None:
+                        login(request, user)
+                        if user.is_admin:
+                            return redirect(reverse('admin_panel:dashboard'))
+                        else:
+                            return redirect(reverse('incidents:user_dashboard'))
     else:
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
