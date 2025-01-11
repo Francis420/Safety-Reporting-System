@@ -6,4 +6,4 @@ from .utils import notify
 @receiver(post_save, sender=Notification)
 def notify_user(sender, instance, created, **kwargs):
     if created:
-        print(f"Notification created for {instance.recipient} - {instance.verb}")
+        print(f"Notification created for {instance.user} - {instance.message}")

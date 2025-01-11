@@ -9,7 +9,7 @@ class FeedbackForm(forms.ModelForm):
     helper.layout = Layout(
         Fieldset(
             'Your Feedback',
-            'feedback_text'
+            'feedback_message'
         ),
         ButtonHolder(
             Submit('submit', 'Submit Feedback', css_class='btn-primary')
@@ -18,4 +18,4 @@ class FeedbackForm(forms.ModelForm):
 
     class Meta:
         model = Feedback
-        fields = ['feedback_text']
+        fields = ['feedback_message']

@@ -17,10 +17,25 @@ def send_notification(sender, instance, created, **kwargs):
         # Notify all admin users when a new report is submitted
         admin_users = CustomUser.objects.filter(is_admin=True)
         for admin in admin_users:
-            notify(instance.user, recipient=admin, verb='New report submitted', target=instance)
+            notify(
+                sender=instance.user,
+                user=admin,
+                message='New report submitted',
+                target=instance
+            )
     else:
         # Notify user when their report status or category is updated
         if getattr(instance, '_status_changed', False):
-            notify(instance.user, recipient=instance.user, verb=f'Report {instance.description} status updated to {instance.status}', target=instance)
+            notify(
+                sender=instance.user,
+                user=instance.user,
+                message=f'Report {instance.description} status updated to {instance.status}',
+                target=instance
+            )
         if getattr(instance, '_category_changed', False):
-            notify(instance.user, recipient=instance.user, verb=f'Report {instance.description} category changed to {instance.category}', target=instance)
+            notify(
+                sender=instance.user,
+                user=instance.user,
+                message=f'Report {instance.description} category changed to {instance.category}',
+                target=instance
+            )

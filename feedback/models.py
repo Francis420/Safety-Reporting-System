@@ -5,7 +5,7 @@ User = get_user_model()
 
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    feedback_text = models.TextField()
+    feedback_message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
