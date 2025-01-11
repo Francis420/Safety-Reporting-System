@@ -3,8 +3,8 @@ from .models import Notification
 
 def notifications_view(request):
     notification_count = Notification.objects.filter(user=request.user, read=False).count()
-    notifications = request.user.notifications.filter(read=False)
-    return render(request, 'notifications.html', {'notifications': notifications, 'notification_count': notification_count})
+    notifications = request.user.notifications.filter(read=False).order_by('-timestamp') 
+    return render(request, 'notifications/notifications.html', {'notifications': notifications, 'notification_count': notification_count})
 
 def mark_notification_as_read(request, pk):
     notification = Notification.objects.get(pk=pk)

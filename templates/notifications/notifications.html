@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h2>Notifications</h2>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for notification in notifications %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center" style="{% if not notification.read %}font-weight: bold;{% endif %}">
+                            <div>
+                                {% if request.user.is_admin %}
+                                    {% if notification.target and notification.target.id %}
+                                        <a href="{% url 'admin_panel:incident_detail' notification.target.id %}">
+                                            {{ notification.target.user.username }} submitted a new report: {{ notification.target.category }} - {{ notification.target.description }} at {{ notification.target.location }}
+                                        </a>
+                                    {% else %}
+                                        <span>Notification details not available</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% if notification.target and notification.target.id %}
+                                        <a href="{% url 'incidents:user_incident_detail' notification.target.id %}">
+                                            {{ notification.message }}
+                                        </a>
+                                    {% else %}
+                                        <span>Notification details not available</span>
+                                    {% endif %}
+                                {% endif %}
+                                <div class="text-muted small">{{ notification.timestamp|date:"F j, Y, g:i a" }}</div>
+                            </div>
+                            <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+                            </form>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">No new notifications.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
