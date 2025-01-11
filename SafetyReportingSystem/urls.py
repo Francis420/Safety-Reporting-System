@@ -24,7 +24,6 @@ urlpatterns = [
     path('admin_panel/', include('admin_panel.urls')),
     path('incidents/', include('incidents.urls')),
     path('status_tracking/', include('status_tracking.urls')),
-    path('dashboard/', include('dashboard.urls')),
     path('notifications/', include('notifications.urls')),
     path('audit_trail/', include('audit_trail.urls')),
     path('feedback/', include('feedback.urls')),

@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'admin_panel',
     'incidents',
     'status_tracking',
-    'dashboard',
     'notifications',
     'audit_trail',
     'feedback',
