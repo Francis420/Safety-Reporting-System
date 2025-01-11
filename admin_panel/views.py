@@ -10,6 +10,7 @@ from django.db.models import Count
 from django.contrib import messages
 from .forms import ConfirmAdminPasswordForm
 from django.contrib.auth import authenticate
+from django.db import connection
 
 def is_admin(user):
     return user.is_admin
@@ -17,15 +18,18 @@ def is_admin(user):
 @login_required
 @user_passes_test(is_admin)
 def toggle_admin_status_view(request, user_id):
-    user = get_object_or_404(CustomUser, id=user_id)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id, username, is_admin FROM accounts_customuser WHERE id = %s", [user_id])
+        user = cursor.fetchone()
     if request.method == 'POST':
         form = ConfirmAdminPasswordForm(request.POST)
         if form.is_valid():
             password = form.cleaned_data['password']
             admin_user = authenticate(username=request.user.username, password=password)
             if admin_user is not None:
-                user.is_admin = not user.is_admin  # Toggle admin status
-                user.save()
+                new_admin_status = not user[2]  # Toggle admin status
+                with connection.cursor() as cursor:
+                    cursor.execute("UPDATE accounts_customuser SET is_admin = %s WHERE id = %s", [new_admin_status, user_id])
                 messages.success(request, 'Admin status updated successfully.')
                 return redirect('admin_panel:user_list')
             else:
@@ -33,30 +37,31 @@ def toggle_admin_status_view(request, user_id):
     else:
         form = ConfirmAdminPasswordForm()
     
-    return render(request, 'admin_panel/toggle_admin_status.html', {'form': form, 'user': user})
+    return render(request, 'admin_panel/toggle_admin_status.html', {'form': form, 'user': {'id': user[0], 'username': user[1]}})
+
 
 @login_required
 @user_passes_test(is_admin)
 @require_POST
 def toggle_account_status_view(request, user_id):
-    user = get_object_or_404(CustomUser, id=user_id)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id, is_active, remarks FROM accounts_customuser WHERE id = %s", [user_id])
+        user = cursor.fetchone()
     new_remark = request.POST.get('remark')
-    user.is_active = not user.is_active  # Toggle the active status
-    if user.remarks:
-        user.remarks += f"\n{new_remark}"
-    else:
-        user.remarks = new_remark
-    user.save()
+    new_active_status = not user[1]  
+    updated_remarks = (user[2] + f"\n{new_remark}") if user[2] else new_remark
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE accounts_customuser SET is_active = %s, remarks = %s WHERE id = %s", [new_active_status, updated_remarks, user_id])
     return redirect('admin_panel:user_list')
+
 
 @login_required
 @user_passes_test(is_admin)
 @require_POST
 def update_remarks_view(request, user_id):
-    user = get_object_or_404(CustomUser, id=user_id)
     new_remark = request.POST.get('remark')
-    user.remarks = new_remark
-    user.save()
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE accounts_customuser SET remarks = %s WHERE id = %s", [new_remark, user_id])
     return redirect('admin_panel:user_list')
 
 def is_admin(user):
@@ -64,49 +69,54 @@ def is_admin(user):
 
 def analytics_view(request):
     # Get filter parameters
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    start_time = request.GET.get('start_time')
-    end_time = request.GET.get('end_time')
+    start_datetime = request.GET.get('start_datetime')
+    end_datetime = request.GET.get('end_datetime')
 
     # Filter incidents based on the provided parameters
-    incidents = IncidentReport.objects.all()
-    if start_date and end_date:
-        start_datetime = datetime.strptime(f"{start_date} {start_time or '00:00'}", '%Y-%m-%d %H:%M')
-        end_datetime = datetime.strptime(f"{end_date} {end_time or '23:59'}", '%Y-%m-%d %H:%M')
-        incidents = incidents.filter(created_at__range=(start_datetime, end_datetime))
+    query = "SELECT id, category, created_at FROM incidents_incidentreport"
+    params = []
+    if start_datetime and end_datetime:
+        query += " WHERE created_at BETWEEN %s AND %s"
+        params.extend([start_datetime, end_datetime])
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, params)
+        incidents = cursor.fetchall()
 
     # Aggregate data for analytics
-    category_data = incidents.values('category').annotate(count=Count('category'))
-    monthly_data = incidents.extra(select={'month': "DATE_FORMAT(created_at, '%%Y-%%m')"}).values('month', 'category').annotate(count=Count('id')).order_by('month', 'category')
+    category_data = {}
+    monthly_data = {}
+    for incident in incidents:
+        category = incident[1]
+        created_at = incident[2]  # Already a datetime object
+        month = created_at.strftime('%Y-%m')
+        category_data[category] = category_data.get(category, 0) + 1
+        if month not in monthly_data:
+            monthly_data[month] = {}
+        monthly_data[month][category] = monthly_data[month].get(category, 0) + 1
 
     # Convert data to JSON for use in JavaScript
-    category_data_json = json.dumps(list(category_data))
-    monthly_data_json = json.dumps(list(monthly_data))
+    category_data_json = json.dumps([{'category': k, 'count': v} for k, v in category_data.items()])
+    monthly_data_json = json.dumps([{'month': k, 'category': cat, 'count': cnt} for k, v in monthly_data.items() for cat, cnt in v.items()])
 
     return render(request, 'admin_panel/analytics.html', {
         'category_data': category_data_json,
         'monthly_data': monthly_data_json,
-        'start_date': start_date,
-        'end_date': end_date,
-        'start_time': start_time,
-        'end_time': end_time,
+        'start_datetime': start_datetime,
+        'end_datetime': end_datetime,
     })
 
 @require_POST
 def update_category_view(request, pk):
-    incident = get_object_or_404(IncidentReport, pk=pk)
     category = request.POST.get('category')
     if category in dict(IncidentReport.CATEGORY_CHOICES):
-        incident.category = category
-        incident.save()
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE incidents_incidentreport SET category = %s WHERE id = %s", [category, pk])
     return redirect('admin_panel:incident_list')
 
 @login_required
 @user_passes_test(is_admin)
 def incident_list_view(request):
-    incidents = IncidentReport.objects.all()
-    
     query = request.GET.get('q')
     category = request.GET.get('category')
     status = request.GET.get('status')
@@ -114,65 +124,146 @@ def incident_list_view(request):
     end_date = request.GET.get('end_date')
     start_time = request.GET.get('start_time')
     end_time = request.GET.get('end_time')
-    
+
+    sql_query = "SELECT id, description, location, status, category FROM incidents_incidentreport WHERE 1=1"
+    params = []
+
     if query:
-        incidents = incidents.filter(
-            Q(description__icontains=query) | Q(location__icontains=query)
-        )
+        sql_query += " AND (description LIKE %s OR location LIKE %s)"
+        params.extend([f"%{query}%", f"%{query}%"])
     if category:
-        incidents = incidents.filter(category=category)
+        sql_query += " AND category = %s"
+        params.append(category)
     if status:
-        incidents = incidents.filter(status=status)
+        sql_query += " AND status = %s"
+        params.append(status)
     if start_date and end_date:
-        start_datetime = datetime.strptime(f"{start_date} {start_time or '00:00'}", '%Y-%m-%d %H:%M')
-        end_datetime = datetime.strptime(f"{end_date} {end_time or '23:59'}", '%Y-%m-%d %H:%M')
-        incidents = incidents.filter(created_at__range=(start_datetime, end_datetime))
-    
-    return render(request, 'admin_panel/incident_list.html', {'incidents': incidents})
+        start_datetime = f"{start_date} {start_time or '00:00'}"
+        end_datetime = f"{end_date} {end_time or '23:59'}"
+        sql_query += " AND created_at BETWEEN %s AND %s"
+        params.extend([start_datetime, end_datetime])
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query, params)
+        incidents = cursor.fetchall()
+
+    # Fetch category and status choices
+    category_choices = IncidentReport.CATEGORY_CHOICES
+    status_choices = IncidentReport.STATUS_CHOICES
+
+    return render(request, 'admin_panel/incident_list.html', {
+        'incidents': incidents,
+        'category_choices': category_choices,
+        'status_choices': status_choices,
+    })
+
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(lambda u: u.is_admin)
 def user_list_view(request):
-    users = CustomUser.objects.all()
-    
     query = request.GET.get('q')
+
+    sql_query = "SELECT id, username, email, address, phone_number, is_active, is_admin FROM accounts_customuser WHERE 1=1"
+    params = []
+
     if query:
-        users = users.filter(
-            Q(username__icontains=query) |
-            Q(email__icontains=query) |
-            Q(address__icontains=query) |
-            Q(phone_number__icontains=query)
-        )
-    
+        sql_query += " AND (username LIKE %s OR email LIKE %s OR address LIKE %s OR phone_number LIKE %s)"
+        params.extend([f"%{query}%", f"%{query}%", f"%{query}%", f"%{query}%"])
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query, params)
+        users = cursor.fetchall()
+
+    # Convert the result to a list of dictionaries
+    users = [
+        {
+            'id': user[0],
+            'username': user[1],
+            'email': user[2],
+            'address': user[3],
+            'phone_number': user[4],
+            'is_active': user[5],
+            'is_admin': user[6]
+        }
+        for user in users
+    ]
+
     return render(request, 'admin_panel/user_list.html', {'users': users})
+
 
 @login_required
 @user_passes_test(is_admin)
 def incident_detail_view(request, pk):
-    incident = get_object_or_404(IncidentReport, pk=pk)
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT ir.id, ir.category, ir.description, ir.location, ir.latitude, ir.longitude, ir.status, ir.created_at, ir.updated_at, cu.username
+            FROM incidents_incidentreport ir
+            JOIN accounts_customuser cu ON ir.user_id = cu.id
+            WHERE ir.id = %s
+        """, [pk])
+        row = cursor.fetchone()
+        if row:
+            incident = {
+                'id': row[0],
+                'category': row[1],
+                'description': row[2],
+                'location': row[3],
+                'latitude': row[4],
+                'longitude': row[5],
+                'status': row[6],
+                'created_at': row[7],
+                'updated_at': row[8],
+                'user': {'username': row[9]}
+            }
+        else:
+            incident = None
+    
+    STATUS_CHOICES = IncidentReport.STATUS_CHOICES
+    
     if request.method == 'POST':
         new_status = request.POST.get('status')
-        if new_status in dict(IncidentReport.STATUS_CHOICES):
-            incident.status = new_status
-            incident.save()
+        if new_status in dict(STATUS_CHOICES):
+            with connection.cursor() as cursor:
+                cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
             return redirect('admin_panel:incident_detail', pk=pk)
-    return render(request, 'admin_panel/incident_detail.html', {'incident': incident})
+    
+    return render(request, 'admin_panel/incident_detail.html', {'incident': incident, 'STATUS_CHOICES': STATUS_CHOICES})
 
 @login_required
 @user_passes_test(is_admin)
 def update_status_view(request, pk):
     if request.method == 'POST':
-        incident = get_object_or_404(IncidentReport, pk=pk)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM incidents_incidentreport WHERE id = %s", [pk])
+            incident = cursor.fetchone()
+        
         new_status = request.POST.get('status')
         if new_status in dict(IncidentReport.STATUS_CHOICES):
-            incident.status = new_status
-            incident.save()
+            with connection.cursor() as cursor:
+                cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
+        
         return redirect('admin_panel:incident_list')
     
 @login_required
 @user_passes_test(is_admin)
 def dashboard_view(request):
-    incidents = IncidentReport.objects.all()
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM incidents_incidentreport")
+        rows = cursor.fetchall()
+        incidents = []
+        for row in rows:
+            incidents.append({
+                'id': row[0],
+                'category': row[1],
+                'description': row[2],
+                'location': row[3],
+                'latitude': row[4],
+                'longitude': row[5],
+                'status': row[6],
+                'created_at': row[7],
+                'updated_at': row[8],
+                'user_id': row[9]
+            })
     
     # Search and filter
     query = request.GET.get('q')
@@ -183,23 +274,64 @@ def dashboard_view(request):
     start_time = request.GET.get('start_time')
     end_time = request.GET.get('end_time')
     
+    filters = []
+    params = []
+    
     if query:
-        incidents = incidents.filter(
-            Q(description__icontains=query) |
-            Q(location__icontains=query)
-        )
+        filters.append("(description LIKE %s OR location LIKE %s)")
+        params.extend([f"%{query}%", f"%{query}%"])
     
     if category:
-        incidents = incidents.filter(category=category)
+        filters.append("category = %s")
+        params.append(category)
     
     if status:
-        incidents = incidents.filter(status=status)
+        filters.append("status = %s")
+        params.append(status)
     
     if start_date and end_date:
-        start_datetime = datetime.strptime(f"{start_date} {start_time or '00:00'}", '%Y-%m-%d %H:%M')
-        end_datetime = datetime.strptime(f"{end_date} {end_time or '23:59'}", '%Y-%m-%d %H:%M')
-        incidents = incidents.filter(created_at__range=(start_datetime, end_datetime))
+        start_datetime = f"{start_date} {start_time or '00:00'}"
+        end_datetime = f"{end_date} {end_time or '23:59'}"
+        filters.append("created_at BETWEEN %s AND %s")
+        params.extend([start_datetime, end_datetime])
     
-    incidents_json = json.dumps(list(incidents.values('id', 'latitude', 'longitude', 'category', 'description')))
+    if filters:
+        filter_query = " AND ".join(filters)
+        query = f"SELECT * FROM incidents_incidentreport WHERE {filter_query}"
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            incidents = []
+            for row in rows:
+                incidents.append({
+                    'id': row[0],
+                    'category': row[1],
+                    'description': row[2],
+                    'location': row[3],
+                    'latitude': row[4],
+                    'longitude': row[5],
+                    'status': row[6],
+                    'created_at': row[7],
+                    'updated_at': row[8],
+                    'user_id': row[9]
+                })
     
-    return render(request, 'admin_panel/dashboard.html', {'incidents': incidents, 'incidents_json': incidents_json})
+    incidents_json = json.dumps([
+        {
+            'id': incident['id'],
+            'latitude': incident['latitude'],
+            'longitude': incident['longitude'],
+            'category': incident['category'],
+            'description': incident['description']
+        } for incident in incidents
+    ])
+    
+    CATEGORY_CHOICES = IncidentReport.CATEGORY_CHOICES
+    STATUS_CHOICES = IncidentReport.STATUS_CHOICES
+    
+    return render(request, 'admin_panel/dashboard.html', {
+        'incidents': incidents,
+        'incidents_json': incidents_json,
+        'CATEGORY_CHOICES': CATEGORY_CHOICES,
+        'STATUS_CHOICES': STATUS_CHOICES
+    })

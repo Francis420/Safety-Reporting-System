@@ -9,17 +9,13 @@
     <!-- Unified Filter for Both Charts -->
     <form method="get" action="{% url 'admin_panel:analytics' %}" class="mb-4">
         <div class="row">
-            <div class="col-md-3">
-                <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+            <div class="col-md-6">
+                <label for="start_datetime">From:</label>
+                <input type="datetime-local" name="start_datetime" value="{{ start_datetime }}" class="form-control">
             </div>
-            <div class="col-md-3">
-                <input type="time" name="start_time" value="{{ start_time }}" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <input type="time" name="end_time" value="{{ end_time }}" class="form-control">
+            <div class="col-md-6">
+                <label for="end_datetime">To:</label>
+                <input type="datetime-local" name="end_datetime" value="{{ end_datetime }}" class="form-control">
             </div>
         </div>
         <button type="submit" class="btn btn-primary mt-3">Filter by Date/Time</button>

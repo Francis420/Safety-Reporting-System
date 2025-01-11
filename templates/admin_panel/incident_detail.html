@@ -8,7 +8,7 @@
     <table class="table table-bordered">
         <tr>
             <th>Category</th>
-            <td>{{ incident.get_category_display }}</td>
+            <td>{{ incident.category }}</td>
         </tr>
         <tr>
             <th>Description</th>
@@ -20,7 +20,7 @@
         </tr>
         <tr>
             <th>Status</th>
-            <td>{{ incident.get_status_display }}</td>
+            <td>{{ incident.status }}</td>
         </tr>
         <tr>
             <th>Reported By</th>
@@ -42,7 +42,7 @@
         <div class="form-group">
             <label for="status">Status:</label>
             <select name="status" id="status" class="form-control">
-                {% for key, value in incident.STATUS_CHOICES %}
+                {% for key, value in STATUS_CHOICES %}
                 <option value="{{ key }}" {% if incident.status == key %}selected{% endif %}>{{ value }}</option>
                 {% endfor %}
             </select>
