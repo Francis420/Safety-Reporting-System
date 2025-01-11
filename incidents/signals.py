@@ -21,7 +21,7 @@ def send_notification(sender, instance, created, **kwargs):
                 sender=instance.user,
                 user=admin,
                 message='New report submitted',
-                target=instance
+                receiver=instance  # Changed this line
             )
     else:
         # Notify user when their report status or category is updated
@@ -30,12 +30,12 @@ def send_notification(sender, instance, created, **kwargs):
                 sender=instance.user,
                 user=instance.user,
                 message=f'Report {instance.description} status updated to {instance.status}',
-                target=instance
+                receiver=instance  # Changed this line
             )
         if getattr(instance, '_category_changed', False):
             notify(
                 sender=instance.user,
                 user=instance.user,
                 message=f'Report {instance.description} category changed to {instance.category}',
-                target=instance
+                receiver=instance  # Changed this line
             )

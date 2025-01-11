@@ -16,16 +16,16 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center" style="{% if not notification.read %}font-weight: bold;{% endif %}">
                             <div>
                                 {% if request.user.is_admin %}
-                                    {% if notification.target and notification.target.id %}
-                                        <a href="{% url 'admin_panel:incident_detail' notification.target.id %}">
-                                            {{ notification.target.user.username }} submitted a new report: {{ notification.target.category }} - {{ notification.target.description }} at {{ notification.target.location }}
+                                    {% if notification.receiver and notification.receiver.id %}
+                                        <a href="{% url 'admin_panel:incident_detail' notification.receiver.id %}">
+                                            {{ notification.receiver.user.username }} submitted a new report: {{ notification.receiver.category }} - {{ notification.receiver.description }} at {{ notification.receiver.location }}
                                         </a>
                                     {% else %}
                                         <span>Notification details not available</span>
                                     {% endif %}
                                 {% else %}
-                                    {% if notification.target and notification.target.id %}
-                                        <a href="{% url 'incidents:user_incident_detail' notification.target.id %}">
+                                    {% if notification.receiver and notification.receiver.id %}
+                                        <a href="{% url 'incidents:user_incident_detail' notification.receiver.id %}">
                                             {{ notification.message }}
                                         </a>
                                     {% else %}
@@ -34,16 +34,10 @@
                                 {% endif %}
                                 <div class="text-muted small">{{ notification.timestamp|date:"F j, Y, g:i a" }}</div>
                             </div>
-                            <div>
-                                <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
-                                </form>
-                                <form action="{% url 'mark_notification_as_unread' notification.id %}" method="post" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Mark as unread</button>
-                                </form>
-                            </div>
+                            <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+                            </form>
                         </li>
                         {% empty %}
                         <li class="list-group-item">No new notifications.</li>

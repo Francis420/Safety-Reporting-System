@@ -5,7 +5,7 @@ class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     message = models.CharField(max_length=255)
     incident = models.ForeignKey('incidents.IncidentReport', on_delete=models.CASCADE, null=True, blank=True)
-    target = models.ForeignKey('incidents.IncidentReport', on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)  # Add this field
+    receiver = models.ForeignKey('incidents.IncidentReport', on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)  # Changed this line
     read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
