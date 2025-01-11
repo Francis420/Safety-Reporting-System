@@ -14,7 +14,8 @@
                 <th>Email</th>
                 <th>Address</th>
                 <th>Phone Number</th>
-                <th>Status</th>
+                <th>Account Status</th>
+                <th>User Level</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -26,6 +27,7 @@
                 <td>{{ user.address }}</td>
                 <td>{{ user.phone_number }}</td>
                 <td>{{ user.is_active|yesno:"Active,Inactive" }}</td>
+                <td>{{ user.is_admin|yesno:"Admin,User" }}</td>
                 <td>
                     <div class="btn-group mb-2" role="group">
                         <form method="post" action="{% url 'admin_panel:toggle_account_status' user.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to {% if user.is_active %}disable{% else %}enable{% endif %} this account?');">
@@ -40,6 +42,7 @@
                         <textarea name="remark" class="form-control" placeholder="Remark" required>{{ user.remarks }}</textarea>
                         <button type="submit" class="btn btn-info mt-2">Update Remarks</button>
                     </form>
+                    <a href="{% url 'admin_panel:toggle_admin_status' user.id %}" class="btn btn-secondary mt-2">Toggle Admin Status</a>
                 </td>
             </tr>
             {% endfor %}

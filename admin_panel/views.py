@@ -7,10 +7,33 @@ from datetime import datetime
 import json
 from django.views.decorators.http import require_POST
 from django.db.models import Count
-
+from django.contrib import messages
+from .forms import ConfirmAdminPasswordForm
+from django.contrib.auth import authenticate
 
 def is_admin(user):
     return user.is_admin
+
+@login_required
+@user_passes_test(is_admin)
+def toggle_admin_status_view(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    if request.method == 'POST':
+        form = ConfirmAdminPasswordForm(request.POST)
+        if form.is_valid():
+            password = form.cleaned_data['password']
+            admin_user = authenticate(username=request.user.username, password=password)
+            if admin_user is not None:
+                user.is_admin = not user.is_admin  # Toggle admin status
+                user.save()
+                messages.success(request, 'Admin status updated successfully.')
+                return redirect('admin_panel:user_list')
+            else:
+                messages.error(request, 'Incorrect password. Please try again.')
+    else:
+        form = ConfirmAdminPasswordForm()
+    
+    return render(request, 'admin_panel/toggle_admin_status.html', {'form': form, 'user': user})
 
 @login_required
 @user_passes_test(is_admin)

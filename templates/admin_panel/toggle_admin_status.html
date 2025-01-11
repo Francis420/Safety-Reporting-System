@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Toggle Admin Status for {{ user.username }}</h2>
+    <form method="post" action="{% url 'admin_panel:toggle_admin_status' user.id %}" onsubmit="return confirm('Are you sure you want to toggle the admin status for this user?');">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Confirm</button>
+    </form>
+</div>
+{% endblock %}
