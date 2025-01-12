@@ -10,32 +10,35 @@ def check_status_category_change(sender, instance, **kwargs):
         previous = IncidentReport.objects.get(pk=instance.pk)
         instance._status_changed = previous.status != instance.status
         instance._category_changed = previous.category != instance.category
+        print(f"Status changed: {instance._status_changed}, Category changed: {instance._category_changed}")
 
 @receiver(post_save, sender=IncidentReport)
 def send_notification(sender, instance, created, **kwargs):
+    print("send_notification signal triggered")  # Check if the signal is triggered
     if created:
-        # Notify all admin users when a new report is submitted
         admin_users = CustomUser.objects.filter(is_admin=True)
         for admin in admin_users:
             notify(
                 sender=instance.user,
                 user=admin,
                 message='New report submitted',
-                receiver=instance  # Changed this line
+                receiver=instance
             )
+            print(f"Notification sent to admin {admin.id} for new report by {instance.user.id}")
     else:
-        # Notify user when their report status or category is updated
         if getattr(instance, '_status_changed', False):
             notify(
                 sender=instance.user,
                 user=instance.user,
                 message=f'Report {instance.description} status updated to {instance.status}',
-                receiver=instance  # Changed this line
+                receiver=instance
             )
+            print(f"Notification sent to user {instance.user.id} for status update")
         if getattr(instance, '_category_changed', False):
             notify(
                 sender=instance.user,
                 user=instance.user,
                 message=f'Report {instance.description} category changed to {instance.category}',
-                receiver=instance  # Changed this line
+                receiver=instance
             )
+            print(f"Notification sent to user {instance.user.id} for category change")

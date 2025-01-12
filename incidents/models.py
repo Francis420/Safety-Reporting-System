@@ -4,15 +4,15 @@ from django.urls import reverse
 
 class IncidentReport(models.Model):
     CATEGORY_CHOICES = [
-        ('crime', 'Crime'),
-        ('accident', 'Traffic Accident'),
-        ('unsafe', 'Unsafe Condition'),
+        ('Crime', 'Crime'),
+        ('Traffic Accident', 'Traffic Accident'),
+        ('Unsafe Condition', 'Unsafe Condition'),
     ]
 
     STATUS_CHOICES = [
-        ('received', 'Received'),
-        ('acknowledged', 'Acknowledged'),
-        ('resolved', 'Resolved'),
+        ('Received', 'Received'),
+        ('Acknowledged', 'Acknowledged'),
+        ('Resolved', 'Resolved'),
     ]
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='incident_reports')
@@ -21,7 +21,7 @@ class IncidentReport(models.Model):
     location = models.CharField(max_length=255)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='received')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Received')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

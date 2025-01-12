@@ -7,6 +7,10 @@
     <h2 class="mb-4">Incident Detail</h2>
     <table class="table table-bordered">
         <tr>
+            <th>ID</th>
+            <td>{{ incident.id }}</td>
+        </tr>
+        <tr>
             <th>Category</th>
             <td>{{ incident.category }}</td>
         </tr>
@@ -37,7 +41,7 @@
     </table>
 
     <h3 class="mt-4">Update Status</h3>
-    <form method="post" action="{% url 'admin_panel:update_status' incident.id %}" class="mb-4">
+    <form method="post" action="{% url 'admin_panel:incident_detail' incident.id %}" class="mb-4" onsubmit="return confirmUpdateStatus();">
         {% csrf_token %}
         <div class="form-group">
             <label for="status">Status:</label>
@@ -55,6 +59,10 @@
 </div>
 
 <script>
+    function confirmUpdateStatus() {
+        return confirm('Are you sure you want to update the status?');
+    }
+
     var map = L.map('map').setView([{{ incident.latitude }}, {{ incident.longitude }}], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

@@ -9,6 +9,8 @@ from .forms import CustomUserCreationForm, CustomUserUpdateForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 
+
+
 def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -27,6 +29,7 @@ def signup_view(request):
         form = CustomUserCreationForm()
     return render(request, 'accounts/signup.html', {'form': form})
 
+
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -41,8 +44,8 @@ def login_view(request):
                         login(request, user)
                         # Log the login action
                         cursor.execute(
-                            "INSERT INTO audit_log (user_id, action, timestamp) VALUES (%s, %s, NOW())",
-                            [user.id, 'logged in']
+                            "INSERT INTO audit_log (user_id, action, changes, timestamp) VALUES (%s, %s, %s, NOW())",
+                            [user.id, 'logged in', '']
                         )
                         if user.is_admin:
                             return redirect(reverse('admin_panel:dashboard'))
@@ -52,16 +55,18 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
 
+
 def custom_logout_view(request):
     user_id = request.user.id
     logout(request)
     with connection.cursor() as cursor:
         # Log the logout action
         cursor.execute(
-            "INSERT INTO audit_log (user_id, action, timestamp) VALUES (%s, %s, NOW())",
-            [user_id, 'logged out']
+            "INSERT INTO audit_log (user_id, action, changes, timestamp) VALUES (%s, %s, %s, NOW())",
+            [user_id, 'logout', '']
         )
     return redirect('home')
+
 
 @login_required
 def update_profile_view(request):
@@ -69,15 +74,26 @@ def update_profile_view(request):
         form = CustomUserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             data = form.cleaned_data
+            user_id = request.user.id
+
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE accounts_customuser SET first_name = %s, last_name = %s, email = %s, address = %s, phone_number = %s, display_name = %s, remarks = %s WHERE id = %s",
-                    [data['first_name'], data['last_name'], data['email'], data['address'], data['phone_number'], data['display_name'], data['remarks'], request.user.id]
+                    """
+                    UPDATE accounts_customuser
+                    SET first_name = %s, last_name = %s, email = %s, address = %s, phone_number = %s, display_name = %s, remarks = %s
+                    WHERE id = %s
+                    """,
+                    [
+                        data.get('first_name', ''), data.get('last_name', ''), data.get('email', ''), data.get('address', ''),
+                        data.get('phone_number', ''), data.get('display_name', ''), data.get('remarks', ''), user_id
+                    ]
                 )
+
             return redirect('profile')
     else:
         form = CustomUserUpdateForm(instance=request.user)
     return render(request, 'accounts/update_profile.html', {'form': form})
+
 
 @login_required
 def profile_view(request):
@@ -88,6 +104,7 @@ def profile_view(request):
         )
         user_data = cursor.fetchone()
     return render(request, 'accounts/profile.html', {'user_data': user_data})
+
 
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'accounts/change_password.html'

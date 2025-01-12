@@ -6,6 +6,7 @@ from django.db.models import Q
 from datetime import datetime
 import json
 from django.db import connection
+from django.db.models.signals import post_save
 
 
 @login_required
@@ -23,10 +24,16 @@ def report_incident_view(request):
                     form.cleaned_data['location'],
                     form.cleaned_data['latitude'],
                     form.cleaned_data['longitude'],
-                    'received',  # default status
+                    'Received',  # default status
                     request.user.id
                 ])
                 incident_id = cursor.lastrowid
+                print(f"Incident report created with ID: {incident_id}")
+
+            # Manually trigger the post_save signal
+            incident = IncidentReport.objects.get(pk=incident_id)
+            post_save.send(sender=IncidentReport, instance=incident, created=True)
+
             return redirect('incidents:user_incident_detail', pk=incident_id)
     else:
         form = IncidentReportForm()
@@ -107,7 +114,7 @@ def update_incident_view(request, pk):
             }
         else:
             incident = None
-    
+
     if request.method == 'POST':
         form = IncidentReportForm(request.POST)
         if form.is_valid():
@@ -126,6 +133,12 @@ def update_incident_view(request, pk):
                     pk,
                     request.user.id
                 ])
+                print(f"Incident report with ID {pk} updated")
+
+            # Manually trigger the post_save signal
+            incident = IncidentReport.objects.get(pk=pk)
+            post_save.send(sender=IncidentReport, instance=incident, created=False)
+
             return redirect('incidents:user_incident_detail', pk=pk)
     else:
         form = IncidentReportForm(initial={
@@ -136,7 +149,7 @@ def update_incident_view(request, pk):
             'longitude': incident['longitude'],
             'status': incident['status']
         })
-    
+
     return render(request, 'incidents/update_incident.html', {'form': form, 'incident': incident})
 
 @login_required

@@ -9,7 +9,10 @@
     <form method="get" action="{% url 'admin_panel:dashboard' %}" class="mb-4">
         <div class="row">
             <div class="col-md-3">
-                <input type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}" class="form-control">
+                <input type="text" name="id_q" placeholder="Search by ID" value="{{ request.GET.id_q }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="q" placeholder="Search by Description or Location" value="{{ request.GET.q }}" class="form-control">
             </div>
             <div class="col-md-3">
                 <select name="category" class="form-control">
@@ -31,17 +34,11 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+            <div class="col-md-3 mt-2">
+                <input type="datetime-local" name="start_datetime" value="{{ request.GET.start_datetime }}" class="form-control">
             </div>
             <div class="col-md-3 mt-2">
-                <input type="time" name="start_time" value="{{ request.GET.start_time }}" class="form-control">
-            </div>
-            <div class="col-md-3 mt-2">
-                <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
-            </div>
-            <div class="col-md-3 mt-2">
-                <input type="time" name="end_time" value="{{ request.GET.end_time }}" class="form-control">
+                <input type="datetime-local" name="end_datetime" value="{{ request.GET.end_datetime }}" class="form-control">
             </div>
             <div class="col-md-3 mt-2">
                 <button type="submit" class="btn btn-primary w-100">Filter</button>

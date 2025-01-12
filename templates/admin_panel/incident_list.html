@@ -9,7 +9,7 @@
     <form method="get" action="{% url 'admin_panel:incident_list' %}" class="mb-4">
         <div class="row">
             <div class="col-md-3">
-                <input type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}" class="form-control">
+                <input type="text" name="q" placeholder="Search by ID, description, or location..." value="{{ request.GET.q }}" class="form-control">
             </div>
             <div class="col-md-3">
                 <select name="category" class="form-control">
@@ -52,6 +52,7 @@
     <table class="table table-striped">
         <thead class="thead-dark">
             <tr>
+                <th>ID</th>
                 <th>Category</th>
                 <th>Description</th>
                 <th>Location</th>
@@ -62,6 +63,7 @@
         <tbody>
             {% for incident in incidents %}
             <tr>
+                <td>{{ incident.0 }}</td>
                 <td>
                     <form method="post" action="{% url 'admin_panel:update_category' incident.0 %}" onsubmit="return confirmUpdate(this, 'category')">
                         {% csrf_token %}

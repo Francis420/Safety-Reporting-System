@@ -1,5 +1,5 @@
-import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+import json
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -15,12 +15,14 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             )
 
             await self.accept()
+            print(f"WebSocket connected for user {self.user.id}")
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
+        print(f"WebSocket disconnected for user {self.user.id}")
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -33,6 +35,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 "message": message
             }
         )
+        print(f"Message received: {message}")
 
     async def send_notification(self, event):
         message = event["message"]
@@ -40,3 +43,4 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "message": message
         }))
+        print(f"Notification sent: {message}")
