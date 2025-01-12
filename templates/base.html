@@ -55,8 +55,8 @@
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:dashboard' %}">Admin Dashboard</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:incident_list' %}">Incident List</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:analytics' %}">Analytics</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:user_list' %}">User List</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{% url 'feedback_list' %}">Feedback List</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:user_list' %}">User Management</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'feedback_list' %}">User Feedbacks</a></li>
                             {% else %}
                                 <li class="nav-item"><a class="nav-link" href="{% url 'incidents:user_dashboard' %}">User Dashboard</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'incidents:report_incident' %}">Report Incident</a></li>

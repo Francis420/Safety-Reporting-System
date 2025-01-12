@@ -39,6 +39,11 @@ def login_view(request):
                     user = authenticate(username=data['username'], password=data['password'])
                     if user is not None:
                         login(request, user)
+                        # Log the login action
+                        cursor.execute(
+                            "INSERT INTO audit_log (user_id, action, timestamp) VALUES (%s, %s, NOW())",
+                            [user.id, 'logged in']
+                        )
                         if user.is_admin:
                             return redirect(reverse('admin_panel:dashboard'))
                         else:
@@ -48,7 +53,14 @@ def login_view(request):
     return render(request, 'accounts/login.html', {'form': form})
 
 def custom_logout_view(request):
+    user_id = request.user.id
     logout(request)
+    with connection.cursor() as cursor:
+        # Log the logout action
+        cursor.execute(
+            "INSERT INTO audit_log (user_id, action, timestamp) VALUES (%s, %s, NOW())",
+            [user_id, 'logged out']
+        )
     return redirect('home')
 
 @login_required
