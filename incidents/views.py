@@ -114,31 +114,14 @@ def update_incident_view(request, pk):
             }
         else:
             incident = None
-
+    
     if request.method == 'POST':
         form = IncidentReportForm(request.POST)
         if form.is_valid():
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    UPDATE incidents_incidentreport
-                    SET category = %s, description = %s, location = %s, latitude = %s, longitude = %s, status = %s, updated_at = NOW()
-                    WHERE id = %s AND user_id = %s
-                """, [
-                    form.cleaned_data['category'],
-                    form.cleaned_data['description'],
-                    form.cleaned_data['location'],
-                    form.cleaned_data['latitude'],
-                    form.cleaned_data['longitude'],
-                    form.cleaned_data.get('status', incident['status']),
-                    pk,
-                    request.user.id
-                ])
-                print(f"Incident report with ID {pk} updated")
-
-            # Manually trigger the post_save signal
-            incident = IncidentReport.objects.get(pk=pk)
-            post_save.send(sender=IncidentReport, instance=incident, created=False)
-
+            # Set the user_id explicitly
+            incident_report = form.save(commit=False)
+            incident_report.user_id = request.user.id
+            incident_report.save()
             return redirect('incidents:user_incident_detail', pk=pk)
     else:
         form = IncidentReportForm(initial={
@@ -149,8 +132,9 @@ def update_incident_view(request, pk):
             'longitude': incident['longitude'],
             'status': incident['status']
         })
-
+    
     return render(request, 'incidents/update_incident.html', {'form': form, 'incident': incident})
+
 
 @login_required
 def delete_incident_view(request, pk):
