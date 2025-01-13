@@ -76,20 +76,37 @@ def update_profile_view(request):
             data = form.cleaned_data
             user_id = request.user.id
 
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    """
-                    UPDATE accounts_customuser
-                    SET first_name = %s, last_name = %s, email = %s, address = %s, phone_number = %s, display_name = %s, remarks = %s
-                    WHERE id = %s
-                    """,
-                    [
-                        data.get('first_name', ''), data.get('last_name', ''), data.get('email', ''), data.get('address', ''),
-                        data.get('phone_number', ''), data.get('display_name', ''), data.get('remarks', ''), user_id
-                    ]
-                )
-
-            return redirect('profile')
+            try:
+                with connection.cursor() as cursor:
+                    # Set isolation level to Serializable before starting the transaction
+                    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                    
+                    # Start transaction
+                    cursor.execute("START TRANSACTION;")
+                    
+                    # Execute the update query
+                    cursor.execute(
+                        """
+                        UPDATE accounts_customuser
+                        SET first_name = %s, last_name = %s, email = %s, address = %s, phone_number = %s, display_name = %s, remarks = %s
+                        WHERE id = %s
+                        """,
+                        [
+                            data.get('first_name', ''), data.get('last_name', ''), data.get('email', ''), data.get('address', ''), 
+                            data.get('phone_number', ''), data.get('display_name', ''), data.get('remarks', ''), user_id
+                        ]
+                    )
+                    
+                    # Commit the transaction
+                    cursor.execute("COMMIT;")
+                    
+                return redirect('profile')
+            except Exception as e:
+                with connection.cursor() as cursor:
+                    # Rollback the transaction in case of error
+                    cursor.execute("ROLLBACK;")
+                # Handle the error (e.g., log it, show an error message)
+                print(f"Error updating profile: {e}")
     else:
         form = CustomUserUpdateForm(instance=request.user)
     return render(request, 'accounts/update_profile.html', {'form': form})
