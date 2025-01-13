@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .forms import FeedbackForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Feedback
+from django.contrib import messages
 from django.db.models import Q
 from datetime import datetime
 from django.db import connection
@@ -80,10 +81,29 @@ def submit_feedback_view(request):
             sql = "INSERT INTO feedback_feedback (feedback_message, user_id, created_at) VALUES (%s, %s, NOW())"
             params = [feedback_message, user_id]
 
-            with connection.cursor() as cursor:
-                cursor.execute(sql, params)
-
-            return redirect('feedback_thanks')
+            try:
+                with connection.cursor() as cursor:
+                    # Set isolation level to Serializable before starting the transaction
+                    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                    
+                    # Start transaction
+                    cursor.execute("START TRANSACTION;")
+                    
+                    # Execute the insert query
+                    cursor.execute(sql, params)
+                    
+                    # Commit the transaction
+                    cursor.execute("COMMIT;")
+                
+                return redirect('feedback_thanks')
+            except Exception as e:
+                with connection.cursor() as cursor:
+                    # Rollback the transaction in case of error
+                    cursor.execute("ROLLBACK;")
+                # Handle the error (e.g., log it, show an error message)
+                print(f"Error submitting feedback: {e}")
+                # Optionally, you can add a message to inform the user about the error
+                messages.error(request, 'An error occurred while submitting feedback. Please try again.')
     else:
         form = FeedbackForm()
     return render(request, 'feedback/submit_feedback.html', {'form': form})
