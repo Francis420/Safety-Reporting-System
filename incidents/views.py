@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 from django.db import connection, transaction
 from django.db.models.signals import post_save
+from django.contrib import messages
 
 
 @login_required
@@ -14,27 +15,46 @@ def report_incident_view(request):
     if request.method == 'POST':
         form = IncidentReportForm(request.POST)
         if form.is_valid():
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO incidents_incidentreport (category, description, location, latitude, longitude, status, created_at, updated_at, user_id)
-                    VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW(), %s)
-                """, [
-                    form.cleaned_data['category'],
-                    form.cleaned_data['description'],
-                    form.cleaned_data['location'],
-                    form.cleaned_data['latitude'],
-                    form.cleaned_data['longitude'],
-                    'Received',  # default status
-                    request.user.id
-                ])
-                incident_id = cursor.lastrowid
-                print(f"Incident report created with ID: {incident_id}")
-
-            # Manually trigger the post_save signal
-            incident = IncidentReport.objects.get(pk=incident_id)
-            post_save.send(sender=IncidentReport, instance=incident, created=True)
-
-            return redirect('incidents:user_incident_detail', pk=incident_id)
+            try:
+                with connection.cursor() as cursor:
+                    # Set isolation level to Serializable before starting the transaction
+                    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                    
+                    # Start transaction
+                    cursor.execute("START TRANSACTION;")
+                    
+                    # Execute the insert query
+                    cursor.execute("""
+                        INSERT INTO incidents_incidentreport (category, description, location, latitude, longitude, status, created_at, updated_at, user_id)
+                        VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW(), %s)
+                    """, [
+                        form.cleaned_data['category'],
+                        form.cleaned_data['description'],
+                        form.cleaned_data['location'],
+                        form.cleaned_data['latitude'],
+                        form.cleaned_data['longitude'],
+                        'Received',  # default status
+                        request.user.id
+                    ])
+                    incident_id = cursor.lastrowid
+                    print(f"Incident report created with ID: {incident_id}")
+                    
+                    # Commit the transaction
+                    cursor.execute("COMMIT;")
+                
+                # Manually trigger the post_save signal
+                incident = IncidentReport.objects.get(pk=incident_id)
+                post_save.send(sender=IncidentReport, instance=incident, created=True)
+                
+                return redirect('incidents:user_incident_detail', pk=incident_id)
+            except Exception as e:
+                with connection.cursor() as cursor:
+                    # Rollback the transaction in case of error
+                    cursor.execute("ROLLBACK;")
+                # Handle the error (e.g., log it, show an error message)
+                print(f"Error reporting incident: {e}")
+                # Optionally, you can add a message to inform the user about the error
+                messages.error(request, 'An error occurred while reporting the incident. Please try again.')
     else:
         form = IncidentReportForm()
     return render(request, 'incidents/report_incident.html', {'form': form})
@@ -121,15 +141,35 @@ def update_incident_view(request, pk):
             data = form.cleaned_data
             # Manually add the status field to the data
             data['status'] = incident['status']
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    UPDATE incidents_incidentreport
-                    SET category = %s, description = %s, location = %s, latitude = %s, longitude = %s, status = %s, updated_at = NOW()
-                    WHERE id = %s AND user_id = %s
-                """, [
-                    data['category'], data['description'], data['location'], data['latitude'], data['longitude'], data['status'], pk, request.user.id
-                ])
-            return redirect('incidents:user_incident_detail', pk=pk)
+            try:
+                with connection.cursor() as cursor:
+                    # Set isolation level to Serializable before starting the transaction
+                    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                    
+                    # Start transaction
+                    cursor.execute("START TRANSACTION;")
+                    
+                    # Execute the update query
+                    cursor.execute("""
+                        UPDATE incidents_incidentreport
+                        SET category = %s, description = %s, location = %s, latitude = %s, longitude = %s, status = %s, updated_at = NOW()
+                        WHERE id = %s AND user_id = %s
+                    """, [
+                        data['category'], data['description'], data['location'], data['latitude'], data['longitude'], data['status'], pk, request.user.id
+                    ])
+                    
+                    # Commit the transaction
+                    cursor.execute("COMMIT;")
+                
+                return redirect('incidents:user_incident_detail', pk=pk)
+            except Exception as e:
+                with connection.cursor() as cursor:
+                    # Rollback the transaction in case of error
+                    cursor.execute("ROLLBACK;")
+                # Handle the error (e.g., log it, show an error message)
+                print(f"Error updating incident: {e}")
+                # Optionally, you can add a message to inform the user about the error
+                messages.error(request, 'An error occurred while updating the incident. Please try again.')
     else:
         form = IncidentReportForm(initial={
             'category': incident['category'],
@@ -166,11 +206,29 @@ def delete_incident_view(request, pk):
             incident = None
 
     if request.method == 'POST':
-        with transaction.atomic():
+        try:
             with connection.cursor() as cursor:
+                # Set isolation level to Serializable before starting the transaction
+                cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                
+                # Start transaction
+                cursor.execute("START TRANSACTION;")
+                
                 cursor.execute("DELETE FROM notifications_notification WHERE incident_id = %s OR receiver_id = %s", [pk, pk])
                 cursor.execute("DELETE FROM incidents_incidentreport WHERE id = %s AND user_id = %s", [pk, request.user.id])
-        return redirect('incidents:user_incident_list')
+                
+                # Commit the transaction
+                cursor.execute("COMMIT;")
+            
+            return redirect('incidents:user_incident_list')
+        except Exception as e:
+            with connection.cursor() as cursor:
+                # Rollback the transaction in case of error
+                cursor.execute("ROLLBACK;")
+            # Handle the error (e.g., log it, show an error message)
+            print(f"Error deleting incident: {e}")
+            # Optionally, you can add a message to inform the user about the error
+            messages.error(request, 'An error occurred while deleting the incident. Please try again.')
 
     return render(request, 'incidents/delete_incident.html', {'incident': incident})
 

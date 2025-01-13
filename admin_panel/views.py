@@ -564,8 +564,8 @@ def update_status_view(request, pk):
             if old_status != new_status:
                 incident = IncidentReport.objects.get(pk=pk)
                 notify(
-                    sender=incident.user,
-                    user=incident.user,
+                    sender=incident.user,  # The admin user making the change
+                    user=request.user,  # The user who submitted the report
                     message=f'Report {incident.description} status updated to {new_status}',
                     receiver=incident
                 )
