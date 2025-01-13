@@ -26,7 +26,7 @@ def is_admin(user):
 @require_POST
 def toggle_admin_status_view(request, user_id):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT id, username, is_admin FROM accounts_customuser WHERE id = %s", [user_id])
+        cursor.execute("SELECT id, username, is_admin FROM accounts_customuser USE INDEX (idx_is_admin) WHERE id = %s", [user_id])
         user = cursor.fetchone()
     
     if request.method == 'POST':
@@ -70,13 +70,12 @@ def toggle_admin_status_view(request, user_id):
     
     return render(request, 'admin_panel/toggle_admin_status.html', {'form': form, 'user': {'id': user[0], 'username': user[1]}})
 
-
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 @require_POST
 def toggle_superuser_status_view(request, user_id):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT id, username, is_superuser FROM accounts_customuser WHERE id = %s", [user_id])
+        cursor.execute("SELECT id, username, is_superuser FROM accounts_customuser USE INDEX (idx_is_superuser) WHERE id = %s", [user_id])
         user = cursor.fetchone()
     
     if request.method == 'POST':
@@ -125,7 +124,7 @@ def toggle_superuser_status_view(request, user_id):
 @require_POST
 def toggle_account_status_view(request, user_id):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT id, is_active FROM accounts_customuser WHERE id = %s", [user_id])
+        cursor.execute("SELECT id, is_active FROM accounts_customuser USE INDEX (idx_is_active) WHERE id = %s", [user_id])
         user = cursor.fetchone()
     
     new_active_status = not user[1]  # Toggle active status
@@ -160,7 +159,6 @@ def toggle_account_status_view(request, user_id):
         # Optionally, you can add a message to inform the user about the error
         # messages.error(request, 'An error occurred while updating account status. Please try again.')
         return redirect('admin_panel:user_list')
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -237,7 +235,6 @@ def analytics_view(request):
         'start_datetime': start_datetime,
         'end_datetime': end_datetime,
     })
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -329,7 +326,6 @@ def incident_list_view(request):
         'category_choices': category_choices,
         'status_choices': status_choices,
     })
-
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -437,7 +433,6 @@ def user_list_view(request):
 
     return render(request, 'admin_panel/user_list.html', {'users': users_page})
 
-
 @login_required
 @user_passes_test(lambda u: u.is_admin)
 def incident_detail_view(request, pk):
@@ -531,7 +526,6 @@ def incident_detail_view(request, pk):
         # Handle the error appropriately (e.g., log it, show a message to the user, etc.)
 
     return render(request, 'admin_panel/incident_detail.html', {'incident': incident, 'STATUS_CHOICES': STATUS_CHOICES})
-
 
 
 @login_required
