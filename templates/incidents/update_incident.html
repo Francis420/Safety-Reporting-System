@@ -113,6 +113,11 @@ function confirmUpdate() {
     }
 }
 
-window.onload = initMap;
+window.onload = function() {
+    initMap();
+    const categoryField = document.querySelector('[name="category"]');
+    categoryField.setAttribute('disabled', 'disabled');
+    categoryField.insertAdjacentHTML('afterend', `<input type="hidden" name="category" value="${categoryField.value}">`);
+};
 </script>
 {% endblock %}

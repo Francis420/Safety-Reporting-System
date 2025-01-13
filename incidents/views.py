@@ -114,14 +114,21 @@ def update_incident_view(request, pk):
             }
         else:
             incident = None
-    
+
     if request.method == 'POST':
         form = IncidentReportForm(request.POST)
         if form.is_valid():
-            # Set the user_id explicitly
-            incident_report = form.save(commit=False)
-            incident_report.user_id = request.user.id
-            incident_report.save()
+            data = form.cleaned_data
+            # Manually add the status field to the data
+            data['status'] = incident['status']
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE incidents_incidentreport
+                    SET category = %s, description = %s, location = %s, latitude = %s, longitude = %s, status = %s, updated_at = NOW()
+                    WHERE id = %s AND user_id = %s
+                """, [
+                    data['category'], data['description'], data['location'], data['latitude'], data['longitude'], data['status'], pk, request.user.id
+                ])
             return redirect('incidents:user_incident_detail', pk=pk)
     else:
         form = IncidentReportForm(initial={
@@ -132,8 +139,9 @@ def update_incident_view(request, pk):
             'longitude': incident['longitude'],
             'status': incident['status']
         })
-    
+
     return render(request, 'incidents/update_incident.html', {'form': form, 'incident': incident})
+
 
 
 @login_required
