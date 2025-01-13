@@ -69,7 +69,6 @@ def feedback_list_view(request):
         'query': query
     })
 
-
 @login_required
 def submit_feedback_view(request):
     if request.method == 'POST':
@@ -83,35 +82,23 @@ def submit_feedback_view(request):
 
             try:
                 with connection.cursor() as cursor:
-                    # Set isolation level to Serializable before starting the transaction
                     cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
-                    
-                    # Start transaction
                     cursor.execute("START TRANSACTION;")
-                    
-                    # Execute the insert query
                     cursor.execute(sql, params)
-                    
-                    # Commit the transaction
                     cursor.execute("COMMIT;")
                 
                 return redirect('feedback_thanks')
             except Exception as e:
                 with connection.cursor() as cursor:
-                    # Rollback the transaction in case of error
                     cursor.execute("ROLLBACK;")
-                # Handle the error (e.g., log it, show an error message)
                 print(f"Error submitting feedback: {e}")
-                # Optionally, you can add a message to inform the user about the error
                 messages.error(request, 'An error occurred while submitting feedback. Please try again.')
     else:
         form = FeedbackForm()
     return render(request, 'feedback/submit_feedback.html', {'form': form})
 
-
 def feedback_thank_you_view(request):
     return render(request, 'feedback/feedback_thanks.html')
-
 
 def feedback_detail_view(request, pk):
     sql = """
