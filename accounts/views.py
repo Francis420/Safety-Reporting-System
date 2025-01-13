@@ -9,8 +9,6 @@ from .forms import CustomUserCreationForm, CustomUserUpdateForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 
-
-
 def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -29,14 +27,13 @@ def signup_view(request):
         form = CustomUserCreationForm()
     return render(request, 'accounts/signup.html', {'form': form})
 
-
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM accounts_customuser WHERE username = %s", [data['username']])
+                cursor.execute("SELECT * FROM accounts_customuser USE INDEX (idx_username) WHERE username = %s", [data['username']])
                 user_row = cursor.fetchone()
                 if user_row:
                     user = authenticate(username=data['username'], password=data['password'])
@@ -55,7 +52,6 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
 
-
 def custom_logout_view(request):
     user_id = request.user.id
     logout(request)
@@ -66,7 +62,6 @@ def custom_logout_view(request):
             [user_id, 'logout', '']
         )
     return redirect('home')
-
 
 @login_required
 def update_profile_view(request):
@@ -111,7 +106,6 @@ def update_profile_view(request):
         form = CustomUserUpdateForm(instance=request.user)
     return render(request, 'accounts/update_profile.html', {'form': form})
 
-
 @login_required
 def profile_view(request):
     with connection.cursor() as cursor:
@@ -121,7 +115,6 @@ def profile_view(request):
         )
         user_data = cursor.fetchone()
     return render(request, 'accounts/profile.html', {'user_data': user_data})
-
 
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'accounts/change_password.html'
