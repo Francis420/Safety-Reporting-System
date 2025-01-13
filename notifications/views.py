@@ -3,8 +3,6 @@ from .models import Notification
 from django.db import connection
 
 def notifications_view(request):
-    from django.db import connection
-
     with connection.cursor() as cursor:
         cursor.execute("SELECT COUNT(*) FROM notifications_notification WHERE user_id = %s AND `read` = 0", [request.user.id])
         notification_count = cursor.fetchone()[0]
@@ -41,16 +39,12 @@ def notifications_view(request):
     return render(request, 'notifications/notifications.html', {'notifications': notifications, 'notification_count': notification_count})
 
 def mark_notification_as_read(request, pk):
-    from django.db import connection
-
     with connection.cursor() as cursor:
         cursor.execute("UPDATE notifications_notification SET `read` = 1 WHERE id = %s", [pk])
 
     return redirect('notifications')
 
 def mark_notification_as_unread(request, pk):
-    from django.db import connection
-
     with connection.cursor() as cursor:
         cursor.execute("UPDATE notifications_notification SET `read` = 0 WHERE id = %s", [pk])
 
