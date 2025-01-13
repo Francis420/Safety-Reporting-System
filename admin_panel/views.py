@@ -245,42 +245,23 @@ def analytics_view(request):
 def update_category_view(request, pk):
     category = request.POST.get('category')
     if category in dict(IncidentReport.CATEGORY_CHOICES):
-        try:
-            with connection.cursor() as cursor:
-                # Set isolation level to Serializable before starting the transaction
-                cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
-                
-                # Start transaction
-                cursor.execute("START TRANSACTION;")
-                
-                cursor.execute("SELECT category FROM incidents_incidentreport WHERE id = %s", [pk])
-                old_category = cursor.fetchone()[0]
-                
-                cursor.execute("SET @current_user_id = %s", [request.user.id])
-                cursor.execute("UPDATE incidents_incidentreport SET category = %s WHERE id = %s", [category, pk])
-                
-                # Commit the transaction
-                cursor.execute("COMMIT;")
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT category FROM incidents_incidentreport WHERE id = %s", [pk])
+            old_category = cursor.fetchone()[0]
             
-            # Manually check for category change and trigger notification logic
-            if old_category != category:
-                incident = IncidentReport.objects.get(pk=pk)
-                notify(
-                    sender=incident.user,
-                    user=incident.user,
-                    message=f'Report {incident.description} category changed to {category}',
-                    receiver=incident
-                )
-                print(f"Notification sent to user {incident.user.id} for category change")
+            cursor.execute("SET @current_user_id = %s", [request.user.id])
+            cursor.execute("UPDATE incidents_incidentreport SET category = %s WHERE id = %s", [category, pk])
         
-        except Exception as e:
-            with connection.cursor() as cursor:
-                # Rollback the transaction in case of error
-                cursor.execute("ROLLBACK;")
-            # Handle the error (e.g., log it, show an error message)
-            print(f"Error updating category: {e}")
-            # Optionally, you can add a message to inform the user about the error
-            messages.error(request, 'An error occurred while updating category. Please try again.')
+        # Manually check for category change and trigger notification logic
+        if old_category != category:
+            incident = IncidentReport.objects.get(pk=pk)
+            notify(
+                sender=incident.user,
+                user=incident.user,
+                message=f'Report {incident.description} category changed to {category}',
+                receiver=incident
+            )
+            print(f"Notification sent to user {incident.user.id} for category change")
 
     return redirect('admin_panel:incident_list')
 
@@ -463,80 +444,95 @@ def incident_detail_view(request, pk):
     STATUS_CHOICES = IncidentReport.STATUS_CHOICES
     incident = None
 
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT ir.id, ir.category, ir.description, ir.location, ir.latitude, ir.longitude, ir.status, ir.created_at, ir.updated_at, cu.username
-            FROM incidents_incidentreport ir
-            JOIN accounts_customuser cu ON ir.user_id = cu.id
-            WHERE ir.id = %s
-        """, [pk])
-        row = cursor.fetchone()
-        if row:
-            incident = {
-                'id': row[0],
-                'category': row[1],
-                'description': row[2],
-                'location': row[3],
-                'latitude': row[4],
-                'longitude': row[5],
-                'status': row[6],
-                'created_at': row[7],
-                'updated_at': row[8],
-                'user': {'username': row[9]}
-            }
-
-    if request.method == 'POST':
-        new_status = request.POST.get('status')
-        if new_status in dict(STATUS_CHOICES):
-            try:
-                with connection.cursor() as cursor:
-                    # Set isolation level to Serializable before starting the transaction
-                    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
-                    
-                    # Start transaction
-                    cursor.execute("START TRANSACTION;")
-                    
-                    cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
-                    
-                    # Refresh the incident data after update
-                    cursor.execute("""
-                        SELECT ir.id, ir.category, ir.description, ir.location, ir.latitude, ir.longitude, ir.status, ir.created_at, ir.updated_at, cu.username
-                        FROM incidents_incidentreport ir
-                        JOIN accounts_customuser cu ON ir.user_id = cu.id
-                        WHERE ir.id = %s
-                    """, [pk])
-                    row = cursor.fetchone()
-                    if row:
-                        incident = {
-                            'id': row[0],
-                            'category': row[1],
-                            'description': row[2],
-                            'location': row[3],
-                            'latitude': row[4],
-                            'longitude': row[5],
-                            'status': row[6],
-                            'created_at': row[7],
-                            'updated_at': row[8],
-                            'user': {'username': row[9]}
-                        }
-                    
-                    # Commit the transaction
-                    cursor.execute("COMMIT;")
-                
-                # Manually trigger the post_save signal
-                incident = IncidentReport.objects.get(pk=pk)
-                post_save.send(sender=IncidentReport, instance=incident, created=False)
+    try:
+        with connection.cursor() as cursor:
+            # Start the transaction
+            cursor.execute("START TRANSACTION")
             
-            except Exception as e:
-                with connection.cursor() as cursor:
-                    # Rollback the transaction in case of error
-                    cursor.execute("ROLLBACK;")
-                # Handle the error (e.g., log it, show an error message)
-                print(f"Error updating incident status: {e}")
-                # Optionally, you can add a message to inform the user about the error
-                messages.error(request, 'An error occurred while updating incident status. Please try again.')
+            # Set the isolation level
+            cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            
+            cursor.execute("""
+                SELECT ir.id, ir.category, ir.description, ir.location, ir.latitude, ir.longitude, ir.status, ir.created_at, ir.updated_at, cu.username
+                FROM incidents_incidentreport ir
+                JOIN accounts_customuser cu ON ir.user_id = cu.id
+                WHERE ir.id = %s
+            """, [pk])
+            row = cursor.fetchone()
+            if row:
+                incident = {
+                    'id': row[0],
+                    'category': row[1],
+                    'description': row[2],
+                    'location': row[3],
+                    'latitude': row[4],
+                    'longitude': row[5],
+                    'status': row[6],
+                    'created_at': row[7],
+                    'updated_at': row[8],
+                    'user': {'username': row[9]}
+                }
+
+        if request.method == 'POST':
+            new_status = request.POST.get('status')
+            if new_status in dict(STATUS_CHOICES):
+                try:
+                    with connection.cursor() as cursor:
+                        cursor.execute("START TRANSACTION")
+                        cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+                        
+                        cursor.execute("SELECT status FROM incidents_incidentreport WHERE id = %s FOR UPDATE", [pk])
+                        old_status = cursor.fetchone()[0]
+                        
+                        cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
+                        
+                        # Commit the transaction
+                        cursor.execute("COMMIT")
+                        
+                        # Refresh the incident data after update
+                        cursor.execute("""
+                            SELECT ir.id, ir.category, ir.description, ir.location, ir.latitude, ir.longitude, ir.status, ir.created_at, ir.updated_at, cu.username
+                            FROM incidents_incidentreport ir
+                            JOIN accounts_customuser cu ON ir.user_id = cu.id
+                            WHERE ir.id = %s
+                        """, [pk])
+                        row = cursor.fetchone()
+                        if row:
+                            incident = {
+                                'id': row[0],
+                                'category': row[1],
+                                'description': row[2],
+                                'location': row[3],
+                                'latitude': row[4],
+                                'longitude': row[5],
+                                'status': row[6],
+                                'created_at': row[7],
+                                'updated_at': row[8],
+                                'user': {'username': row[9]}
+                            }
+                        
+                        # Manually check for status change and trigger notification logic
+                        if old_status != new_status:
+                            incident = IncidentReport.objects.get(pk=pk)
+                            notify(
+                                sender=incident.user,
+                                user=incident.user,
+                                message=f'Report {incident.description} status updated to {new_status}',
+                                receiver=incident
+                            )
+                            print(f"Notification sent to user {incident.user.id} for status update")
+                except Exception as e:
+                    with connection.cursor() as cursor:
+                        cursor.execute("ROLLBACK")
+                    print(f"Transaction failed: {e}")
+                    # Handle the error appropriately (e.g., log it, show a message to the user, etc.)
+    except Exception as e:
+        print(f"Transaction failed: {e}")
+        # Handle the error appropriately (e.g., log it, show a message to the user, etc.)
 
     return render(request, 'admin_panel/incident_detail.html', {'incident': incident, 'STATUS_CHOICES': STATUS_CHOICES})
+
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -544,44 +540,25 @@ def incident_detail_view(request, pk):
 def update_status_view(request, pk):
     new_status = request.POST.get('status')
     if new_status in dict(IncidentReport.STATUS_CHOICES):
-        try:
-            with connection.cursor() as cursor:
-                # Set isolation level to Serializable before starting the transaction
-                cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
-                
-                # Start transaction
-                cursor.execute("START TRANSACTION;")
-                
-                cursor.execute("SELECT status FROM incidents_incidentreport WHERE id = %s", [pk])
-                old_status = cursor.fetchone()[0]
-                
-                cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
-                
-                # Commit the transaction
-                cursor.execute("COMMIT;")
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT status FROM incidents_incidentreport WHERE id = %s", [pk])
+            old_status = cursor.fetchone()[0]
             
-            # Manually check for status change and trigger notification logic
-            if old_status != new_status:
-                incident = IncidentReport.objects.get(pk=pk)
-                notify(
-                    sender=incident.user,  # The admin user making the change
-                    user=request.user,  # The user who submitted the report
-                    message=f'Report {incident.description} status updated to {new_status}',
-                    receiver=incident
-                )
-                print(f"Notification sent to user {incident.user.id} for status update")
+            cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
         
-        except Exception as e:
-            with connection.cursor() as cursor:
-                # Rollback the transaction in case of error
-                cursor.execute("ROLLBACK;")
-            # Handle the error (e.g., log it, show an error message)
-            print(f"Error updating status: {e}")
-            # Optionally, you can add a message to inform the user about the error
-            messages.error(request, 'An error occurred while updating status. Please try again.')
+        # Manually check for status change and trigger notification logic
+        if old_status != new_status:
+            incident = IncidentReport.objects.get(pk=pk)
+            notify(
+                sender=incident.user,
+                user=incident.user,
+                message=f'Report {incident.description} status updated to {new_status}',
+                receiver=incident
+            )
+            print(f"Notification sent to user {incident.user.id} for status update")
 
     return redirect('admin_panel:incident_list')
-    
+
 @login_required
 @user_passes_test(lambda u: u.is_admin)
 def dashboard_view(request):
