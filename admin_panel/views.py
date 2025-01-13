@@ -21,7 +21,7 @@ def is_admin(user):
     return user.is_admin
 
 
-@login_required 
+@login_required
 @user_passes_test(is_admin)
 @require_POST
 def toggle_admin_status_view(request, user_id):
@@ -37,13 +37,32 @@ def toggle_admin_status_view(request, user_id):
             if admin_user is not None:
                 new_admin_status = not user[2]  # Toggle admin status
                 
-                with connection.cursor() as cursor:
-                    # Set the current user ID as a session variable
-                    cursor.execute("SET @current_user_id = %s", [request.user.id])
-                    cursor.execute("UPDATE accounts_customuser SET is_admin = %s WHERE id = %s", [new_admin_status, user_id])
-                
-                messages.success(request, 'Admin status updated successfully.')
-                return redirect('admin_panel:user_list')
+                try:
+                    with connection.cursor() as cursor:
+                        # Set isolation level to Serializable before starting the transaction
+                        cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                        
+                        # Start transaction
+                        cursor.execute("START TRANSACTION;")
+                        
+                        # Set the current user ID as a session variable
+                        cursor.execute("SET @current_user_id = %s", [request.user.id])
+                        
+                        # Execute the update query
+                        cursor.execute("UPDATE accounts_customuser SET is_admin = %s WHERE id = %s", [new_admin_status, user_id])
+                        
+                        # Commit the transaction
+                        cursor.execute("COMMIT;")
+                    
+                    messages.success(request, 'Admin status updated successfully.')
+                    return redirect('admin_panel:user_list')
+                except Exception as e:
+                    with connection.cursor() as cursor:
+                        # Rollback the transaction in case of error
+                        cursor.execute("ROLLBACK;")
+                    # Handle the error (e.g., log it, show an error message)
+                    print(f"Error updating admin status: {e}")
+                    messages.error(request, 'An error occurred while updating admin status. Please try again.')
             else:
                 messages.error(request, 'Incorrect password. Please try again.')
     else:
@@ -68,12 +87,32 @@ def toggle_superuser_status_view(request, user_id):
             if admin_user is not None:
                 new_superuser_status = not user[2]  # Toggle superuser status
                 
-                with connection.cursor() as cursor:
-                    cursor.execute("SET @current_user_id = %s", [request.user.id])
-                    cursor.execute("UPDATE accounts_customuser SET is_superuser = %s WHERE id = %s", [new_superuser_status, user_id])
-                
-                messages.success(request, 'Superuser status updated successfully.')
-                return redirect('admin_panel:user_list')
+                try:
+                    with connection.cursor() as cursor:
+                        # Set isolation level to Serializable before starting the transaction
+                        cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                        
+                        # Start transaction
+                        cursor.execute("START TRANSACTION;")
+                        
+                        # Set the current user ID as a session variable
+                        cursor.execute("SET @current_user_id = %s", [request.user.id])
+                        
+                        # Execute the update query
+                        cursor.execute("UPDATE accounts_customuser SET is_superuser = %s WHERE id = %s", [new_superuser_status, user_id])
+                        
+                        # Commit the transaction
+                        cursor.execute("COMMIT;")
+                    
+                    messages.success(request, 'Superuser status updated successfully.')
+                    return redirect('admin_panel:user_list')
+                except Exception as e:
+                    with connection.cursor() as cursor:
+                        # Rollback the transaction in case of error
+                        cursor.execute("ROLLBACK;")
+                    # Handle the error (e.g., log it, show an error message)
+                    print(f"Error updating superuser status: {e}")
+                    messages.error(request, 'An error occurred while updating superuser status. Please try again.')
             else:
                 messages.error(request, 'Incorrect password. Please try again.')
     else:
@@ -91,15 +130,36 @@ def toggle_account_status_view(request, user_id):
     
     new_active_status = not user[1]  # Toggle active status
     
-    with connection.cursor() as cursor:
-        # Set the current user ID as a session variable
-        cursor.execute("SET @current_user_id = %s", [request.user.id])
-        cursor.execute(
-            "UPDATE accounts_customuser SET is_active = %s WHERE id = %s",
-            [new_active_status, user_id]
-        )
-    
-    return redirect('admin_panel:user_list')
+    try:
+        with connection.cursor() as cursor:
+            # Set isolation level to Serializable before starting the transaction
+            cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+            
+            # Start transaction
+            cursor.execute("START TRANSACTION;")
+            
+            # Set the current user ID as a session variable
+            cursor.execute("SET @current_user_id = %s", [request.user.id])
+            
+            # Execute the update query
+            cursor.execute(
+                "UPDATE accounts_customuser SET is_active = %s WHERE id = %s",
+                [new_active_status, user_id]
+            )
+            
+            # Commit the transaction
+            cursor.execute("COMMIT;")
+        
+        return redirect('admin_panel:user_list')
+    except Exception as e:
+        with connection.cursor() as cursor:
+            # Rollback the transaction in case of error
+            cursor.execute("ROLLBACK;")
+        # Handle the error (e.g., log it, show an error message)
+        print(f"Error updating account status: {e}")
+        # Optionally, you can add a message to inform the user about the error
+        # messages.error(request, 'An error occurred while updating account status. Please try again.')
+        return redirect('admin_panel:user_list')
 
 
 @login_required
@@ -108,12 +168,33 @@ def toggle_account_status_view(request, user_id):
 def update_remarks_view(request, user_id):
     new_remark = request.POST.get('remark')
     
-    with connection.cursor() as cursor:
-        # Set the current user ID as a session variable
-        cursor.execute("SET @current_user_id = %s", [request.user.id])
-        cursor.execute("UPDATE accounts_customuser SET remarks = %s WHERE id = %s", [new_remark, user_id])
-    
-    return redirect('admin_panel:user_list')
+    try:
+        with connection.cursor() as cursor:
+            # Set isolation level to Serializable before starting the transaction
+            cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+            
+            # Start transaction
+            cursor.execute("START TRANSACTION;")
+            
+            # Set the current user ID as a session variable
+            cursor.execute("SET @current_user_id = %s", [request.user.id])
+            
+            # Execute the update query
+            cursor.execute("UPDATE accounts_customuser SET remarks = %s WHERE id = %s", [new_remark, user_id])
+            
+            # Commit the transaction
+            cursor.execute("COMMIT;")
+        
+        return redirect('admin_panel:user_list')
+    except Exception as e:
+        with connection.cursor() as cursor:
+            # Rollback the transaction in case of error
+            cursor.execute("ROLLBACK;")
+        # Handle the error (e.g., log it, show an error message)
+        print(f"Error updating remarks: {e}")
+        # Optionally, you can add a message to inform the user about the error
+        messages.error(request, 'An error occurred while updating remarks. Please try again.')
+        return redirect('admin_panel:user_list')
 
 def is_admin(user):
     return user.is_admin
@@ -164,23 +245,42 @@ def analytics_view(request):
 def update_category_view(request, pk):
     category = request.POST.get('category')
     if category in dict(IncidentReport.CATEGORY_CHOICES):
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT category FROM incidents_incidentreport WHERE id = %s", [pk])
-            old_category = cursor.fetchone()[0]
+        try:
+            with connection.cursor() as cursor:
+                # Set isolation level to Serializable before starting the transaction
+                cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                
+                # Start transaction
+                cursor.execute("START TRANSACTION;")
+                
+                cursor.execute("SELECT category FROM incidents_incidentreport WHERE id = %s", [pk])
+                old_category = cursor.fetchone()[0]
+                
+                cursor.execute("SET @current_user_id = %s", [request.user.id])
+                cursor.execute("UPDATE incidents_incidentreport SET category = %s WHERE id = %s", [category, pk])
+                
+                # Commit the transaction
+                cursor.execute("COMMIT;")
             
-            cursor.execute("SET @current_user_id = %s", [request.user.id])
-            cursor.execute("UPDATE incidents_incidentreport SET category = %s WHERE id = %s", [category, pk])
+            # Manually check for category change and trigger notification logic
+            if old_category != category:
+                incident = IncidentReport.objects.get(pk=pk)
+                notify(
+                    sender=incident.user,
+                    user=incident.user,
+                    message=f'Report {incident.description} category changed to {category}',
+                    receiver=incident
+                )
+                print(f"Notification sent to user {incident.user.id} for category change")
         
-        # Manually check for category change and trigger notification logic
-        if old_category != category:
-            incident = IncidentReport.objects.get(pk=pk)
-            notify(
-                sender=incident.user,
-                user=incident.user,
-                message=f'Report {incident.description} category changed to {category}',
-                receiver=incident
-            )
-            print(f"Notification sent to user {incident.user.id} for category change")
+        except Exception as e:
+            with connection.cursor() as cursor:
+                # Rollback the transaction in case of error
+                cursor.execute("ROLLBACK;")
+            # Handle the error (e.g., log it, show an error message)
+            print(f"Error updating category: {e}")
+            # Optionally, you can add a message to inform the user about the error
+            messages.error(request, 'An error occurred while updating category. Please try again.')
 
     return redirect('admin_panel:incident_list')
 
@@ -388,33 +488,53 @@ def incident_detail_view(request, pk):
     if request.method == 'POST':
         new_status = request.POST.get('status')
         if new_status in dict(STATUS_CHOICES):
-            with connection.cursor() as cursor:
-                cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
-                # Refresh the incident data after update
-                cursor.execute("""
-                    SELECT ir.id, ir.category, ir.description, ir.location, ir.latitude, ir.longitude, ir.status, ir.created_at, ir.updated_at, cu.username
-                    FROM incidents_incidentreport ir
-                    JOIN accounts_customuser cu ON ir.user_id = cu.id
-                    WHERE ir.id = %s
-                """, [pk])
-                row = cursor.fetchone()
-                if row:
-                    incident = {
-                        'id': row[0],
-                        'category': row[1],
-                        'description': row[2],
-                        'location': row[3],
-                        'latitude': row[4],
-                        'longitude': row[5],
-                        'status': row[6],
-                        'created_at': row[7],
-                        'updated_at': row[8],
-                        'user': {'username': row[9]}
-                    }
+            try:
+                with connection.cursor() as cursor:
+                    # Set isolation level to Serializable before starting the transaction
+                    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                    
+                    # Start transaction
+                    cursor.execute("START TRANSACTION;")
+                    
+                    cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
+                    
+                    # Refresh the incident data after update
+                    cursor.execute("""
+                        SELECT ir.id, ir.category, ir.description, ir.location, ir.latitude, ir.longitude, ir.status, ir.created_at, ir.updated_at, cu.username
+                        FROM incidents_incidentreport ir
+                        JOIN accounts_customuser cu ON ir.user_id = cu.id
+                        WHERE ir.id = %s
+                    """, [pk])
+                    row = cursor.fetchone()
+                    if row:
+                        incident = {
+                            'id': row[0],
+                            'category': row[1],
+                            'description': row[2],
+                            'location': row[3],
+                            'latitude': row[4],
+                            'longitude': row[5],
+                            'status': row[6],
+                            'created_at': row[7],
+                            'updated_at': row[8],
+                            'user': {'username': row[9]}
+                        }
+                    
+                    # Commit the transaction
+                    cursor.execute("COMMIT;")
+                
+                # Manually trigger the post_save signal
+                incident = IncidentReport.objects.get(pk=pk)
+                post_save.send(sender=IncidentReport, instance=incident, created=False)
             
-            # Manually trigger the post_save signal
-            incident = IncidentReport.objects.get(pk=pk)
-            post_save.send(sender=IncidentReport, instance=incident, created=False)
+            except Exception as e:
+                with connection.cursor() as cursor:
+                    # Rollback the transaction in case of error
+                    cursor.execute("ROLLBACK;")
+                # Handle the error (e.g., log it, show an error message)
+                print(f"Error updating incident status: {e}")
+                # Optionally, you can add a message to inform the user about the error
+                messages.error(request, 'An error occurred while updating incident status. Please try again.')
 
     return render(request, 'admin_panel/incident_detail.html', {'incident': incident, 'STATUS_CHOICES': STATUS_CHOICES})
 
@@ -424,22 +544,41 @@ def incident_detail_view(request, pk):
 def update_status_view(request, pk):
     new_status = request.POST.get('status')
     if new_status in dict(IncidentReport.STATUS_CHOICES):
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT status FROM incidents_incidentreport WHERE id = %s", [pk])
-            old_status = cursor.fetchone()[0]
+        try:
+            with connection.cursor() as cursor:
+                # Set isolation level to Serializable before starting the transaction
+                cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                
+                # Start transaction
+                cursor.execute("START TRANSACTION;")
+                
+                cursor.execute("SELECT status FROM incidents_incidentreport WHERE id = %s", [pk])
+                old_status = cursor.fetchone()[0]
+                
+                cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
+                
+                # Commit the transaction
+                cursor.execute("COMMIT;")
             
-            cursor.execute("UPDATE incidents_incidentreport SET status = %s WHERE id = %s", [new_status, pk])
+            # Manually check for status change and trigger notification logic
+            if old_status != new_status:
+                incident = IncidentReport.objects.get(pk=pk)
+                notify(
+                    sender=incident.user,
+                    user=incident.user,
+                    message=f'Report {incident.description} status updated to {new_status}',
+                    receiver=incident
+                )
+                print(f"Notification sent to user {incident.user.id} for status update")
         
-        # Manually check for status change and trigger notification logic
-        if old_status != new_status:
-            incident = IncidentReport.objects.get(pk=pk)
-            notify(
-                sender=incident.user,
-                user=incident.user,
-                message=f'Report {incident.description} status updated to {new_status}',
-                receiver=incident
-            )
-            print(f"Notification sent to user {incident.user.id} for status update")
+        except Exception as e:
+            with connection.cursor() as cursor:
+                # Rollback the transaction in case of error
+                cursor.execute("ROLLBACK;")
+            # Handle the error (e.g., log it, show an error message)
+            print(f"Error updating status: {e}")
+            # Optionally, you can add a message to inform the user about the error
+            messages.error(request, 'An error occurred while updating status. Please try again.')
 
     return redirect('admin_panel:incident_list')
     
