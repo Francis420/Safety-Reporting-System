@@ -5,7 +5,7 @@ from .models import IncidentReport
 from django.db.models import Q
 from datetime import datetime
 import json
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models.signals import post_save
 
 
@@ -42,7 +42,7 @@ def report_incident_view(request):
 @login_required
 def user_incident_list_view(request):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM incidents_incidentreport WHERE user_id = %s", [request.user.id])
+        cursor.execute("SELECT * FROM incidents_incidentreport WHERE user_id = %s ORDER BY created_at DESC", [request.user.id])
         rows = cursor.fetchall()
         incidents = []
         for row in rows:
@@ -164,12 +164,14 @@ def delete_incident_view(request, pk):
             }
         else:
             incident = None
-    
+
     if request.method == 'POST':
-        with connection.cursor() as cursor:
-            cursor.execute("DELETE FROM incidents_incidentreport WHERE id = %s AND user_id = %s", [pk, request.user.id])
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM notifications_notification WHERE incident_id = %s OR receiver_id = %s", [pk, pk])
+                cursor.execute("DELETE FROM incidents_incidentreport WHERE id = %s AND user_id = %s", [pk, request.user.id])
         return redirect('incidents:user_incident_list')
-    
+
     return render(request, 'incidents/delete_incident.html', {'incident': incident})
 
 @login_required
