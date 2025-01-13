@@ -13,6 +13,7 @@ from django.contrib.auth import authenticate
 from django.db import connection
 from django.db.models.signals import post_save
 from notifications.utils import notify
+from django.core.paginator import Paginator
 
 
 
@@ -184,7 +185,7 @@ def update_category_view(request, pk):
     return redirect('admin_panel:incident_list')
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(lambda u: u.is_admin)
 def incident_list_view(request):
     query = request.GET.get('q')
     category = request.GET.get('category')
@@ -193,6 +194,7 @@ def incident_list_view(request):
     end_date = request.GET.get('end_date')
     start_time = request.GET.get('start_time')
     end_time = request.GET.get('end_time')
+    page = request.GET.get('page', 1)
 
     sql_query = "SELECT id, description, location, status, category FROM incidents_incidentreport WHERE 1=1"
     params = []
@@ -216,19 +218,95 @@ def incident_list_view(request):
         sql_query += " AND created_at BETWEEN %s AND %s"
         params.extend([start_datetime, end_datetime])
 
+    sql_query += " ORDER BY created_at DESC"  # Order by creation date in descending order
+
     with connection.cursor() as cursor:
         cursor.execute(sql_query, params)
         incidents = cursor.fetchall()
+
+    # Convert the result to a list of dictionaries
+    incidents = [
+        {
+            'id': incident[0],
+            'description': incident[1],
+            'location': incident[2],
+            'status': incident[3],
+            'category': incident[4]
+        }
+        for incident in incidents
+    ]
+
+    paginator = Paginator(incidents, 10)  # Show 10 incidents per page
+    incidents_page = paginator.get_page(page)
 
     # Fetch category and status choices
     category_choices = IncidentReport.CATEGORY_CHOICES
     status_choices = IncidentReport.STATUS_CHOICES
 
     return render(request, 'admin_panel/incident_list.html', {
-        'incidents': incidents,
+        'incidents': incidents_page,
         'category_choices': category_choices,
         'status_choices': status_choices,
     })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def audit_logs_view(request):
+    log_id = request.GET.get('log_id')
+    user_id = request.GET.get('user_id')
+    action = request.GET.get('action')
+    changes = request.GET.get('changes')
+    datetime_from = request.GET.get('datetime_from')
+    datetime_to = request.GET.get('datetime_to')
+    page = request.GET.get('page', 1)
+
+    sql_query = """
+        SELECT id, user_id, action, changes, timestamp 
+        FROM audit_log WHERE 1=1
+        ORDER BY timestamp DESC
+    """
+    params = []
+
+    if log_id:
+        sql_query += " AND id LIKE %s"
+        params.append(f"%{log_id}%")
+    if user_id:
+        sql_query += " AND user_id LIKE %s"
+        params.append(f"%{user_id}%")
+    if action:
+        sql_query += " AND action LIKE %s"
+        params.append(f"%{action}%")
+    if changes:
+        sql_query += " AND changes LIKE %s"
+        params.append(f"%{changes}%")
+    if datetime_from:
+        sql_query += " AND timestamp >= %s"
+        params.append(datetime_from)
+    if datetime_to:
+        sql_query += " AND timestamp <= %s"
+        params.append(datetime_to)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query, params)
+        logs = cursor.fetchall()
+
+    # Convert the result to a list of dictionaries
+    logs = [
+        {
+            'id': log[0],
+            'user_id': log[1],
+            'action': log[2],
+            'changes': log[3],
+            'timestamp': log[4]
+        }
+        for log in logs
+    ]
+
+    paginator = Paginator(logs, 10)  # Show 10 logs per page
+    logs_page = paginator.get_page(page)
+
+    return render(request, 'admin_panel/audit_logs.html', {'logs': logs_page})
 
 
 @login_required
@@ -236,6 +314,7 @@ def incident_list_view(request):
 def user_list_view(request):
     id_query = request.GET.get('id_q')
     general_query = request.GET.get('q')
+    page = request.GET.get('page', 1)
 
     sql_query = """
         SELECT id, username, email, address, phone_number, is_active, is_admin, is_superuser,
@@ -272,7 +351,10 @@ def user_list_view(request):
         for user in users
     ]
 
-    return render(request, 'admin_panel/user_list.html', {'users': users})
+    paginator = Paginator(users, 10)  # Show 10 users per page
+    users_page = paginator.get_page(page)
+
+    return render(request, 'admin_panel/user_list.html', {'users': users_page})
 
 
 @login_required

@@ -1,19 +1,25 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from .forms import FeedbackForm
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Feedback
 from django.db.models import Q
 from datetime import datetime
 from django.db import connection
+from django.core.paginator import Paginator
 
 
 
-@staff_member_required
+def is_admin(user):
+    return user.is_admin
+
+
+@login_required 
+@user_passes_test(is_admin)
 def feedback_list_view(request):
-    query = request.GET.get('q')
+    query = request.GET.get('q', '')
     from_datetime = request.GET.get('from')
     to_datetime = request.GET.get('to')
+    page = request.GET.get('page', 1)
 
     sql = """
     SELECT f.id, f.feedback_message, f.user_id, f.created_at, u.username
@@ -41,18 +47,22 @@ def feedback_list_view(request):
         cursor.execute(sql, params)
         feedbacks = cursor.fetchall()
 
-    feedback_list = []
-    for feedback in feedbacks:
-        feedback_list.append({
+    feedback_list = [
+        {
             'id': feedback[0],
             'feedback_message': feedback[1],
             'user_id': feedback[2],
             'created_at': feedback[3],
             'username': feedback[4]
-        })
+        }
+        for feedback in feedbacks
+    ]
+
+    paginator = Paginator(feedback_list, 10)  # Show 10 feedbacks per page
+    feedbacks_page = paginator.get_page(page)
 
     return render(request, 'feedback/feedback_list.html', {
-        'feedbacks': feedback_list,
+        'feedbacks': feedbacks_page,
         'from_datetime': from_datetime,
         'to_datetime': to_datetime,
         'query': query

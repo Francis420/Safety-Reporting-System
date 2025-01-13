@@ -1,12 +1,13 @@
 from django.urls import path
 from .views import analytics_view
-from .views import incident_list_view, user_list_view, incident_detail_view, update_status_view, dashboard_view, update_category_view, toggle_account_status_view, update_remarks_view, toggle_admin_status_view, toggle_superuser_status_view
+from .views import incident_list_view, user_list_view, incident_detail_view, update_status_view, dashboard_view, update_category_view, toggle_account_status_view, update_remarks_view, toggle_admin_status_view, toggle_superuser_status_view, audit_logs_view
 
 
 app_name = 'admin_panel'
 
 urlpatterns = [
     path('incidents/', incident_list_view, name='incident_list'),
+    path('audit-logs/', audit_logs_view, name='audit_logs'),
     path('incidents/<int:pk>/', incident_detail_view, name='incident_detail'),
     path('incidents/update_status/<int:pk>/', update_status_view, name='update_status'),
     path('incidents/update_category/<int:pk>/', update_category_view, name='update_category'),

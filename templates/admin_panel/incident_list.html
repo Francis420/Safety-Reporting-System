@@ -63,13 +63,13 @@
         <tbody>
             {% for incident in incidents %}
             <tr>
-                <td>{{ incident.0 }}</td>
+                <td>{{ incident.id }}</td>
                 <td>
-                    <form method="post" action="{% url 'admin_panel:update_category' incident.0 %}" onsubmit="return confirmUpdate(this, 'category')">
+                    <form method="post" action="{% url 'admin_panel:update_category' incident.id %}" onsubmit="return confirmUpdate(this, 'category')">
                         {% csrf_token %}
                         <select name="category" class="form-control">
                             {% for choice in category_choices %}
-                            <option value="{{ choice.0 }}" {% if incident.4 == choice.0 %}selected{% endif %}>
+                            <option value="{{ choice.0 }}" {% if incident.category == choice.0 %}selected{% endif %}>
                                 {{ choice.1 }}
                             </option>
                             {% endfor %}
@@ -77,14 +77,14 @@
                         <button type="submit" class="btn btn-sm btn-outline-primary mt-2">Update</button>
                     </form>
                 </td>
-                <td>{{ incident.1 }}</td>
-                <td>{{ incident.2 }}</td>
+                <td>{{ incident.description }}</td>
+                <td>{{ incident.location }}</td>
                 <td>
-                    <form method="post" action="{% url 'admin_panel:update_status' incident.0 %}" onsubmit="return confirmUpdate(this, 'status')">
+                    <form method="post" action="{% url 'admin_panel:update_status' incident.id %}" onsubmit="return confirmUpdate(this, 'status')">
                         {% csrf_token %}
                         <select name="status" class="form-control">
                             {% for choice in status_choices %}
-                            <option value="{{ choice.0 }}" {% if incident.3 == choice.0 %}selected{% endif %}>
+                            <option value="{{ choice.0 }}" {% if incident.status == choice.0 %}selected{% endif %}>
                                 {{ choice.1 }}
                             </option>
                             {% endfor %}
@@ -93,12 +93,25 @@
                     </form>
                 </td>
                 <td>
-                    <a href="{% url 'admin_panel:incident_detail' incident.0 %}" class="btn btn-sm btn-info">View Details</a>
+                    <a href="{% url 'admin_panel:incident_detail' incident.id %}" class="btn btn-sm btn-info">View Details</a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if incidents.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ incidents.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            {% for num in incidents.paginator.page_range %}
+            <li class="page-item {% if incidents.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endfor %}
+            {% if incidents.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ incidents.next_page_number }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
 
 <script>
