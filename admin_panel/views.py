@@ -51,6 +51,34 @@ def toggle_admin_status_view(request, user_id):
     return render(request, 'admin_panel/toggle_admin_status.html', {'form': form, 'user': {'id': user[0], 'username': user[1]}})
 
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+@require_POST
+def toggle_superuser_status_view(request, user_id):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id, username, is_superuser FROM accounts_customuser WHERE id = %s", [user_id])
+        user = cursor.fetchone()
+    
+    if request.method == 'POST':
+        form = ConfirmAdminPasswordForm(request.POST)
+        if form.is_valid():
+            password = form.cleaned_data['password']
+            admin_user = authenticate(username=request.user.username, password=password)
+            if admin_user is not None:
+                new_superuser_status = not user[2]  # Toggle superuser status
+                
+                with connection.cursor() as cursor:
+                    cursor.execute("SET @current_user_id = %s", [request.user.id])
+                    cursor.execute("UPDATE accounts_customuser SET is_superuser = %s WHERE id = %s", [new_superuser_status, user_id])
+                
+                messages.success(request, 'Superuser status updated successfully.')
+                return redirect('admin_panel:user_list')
+            else:
+                messages.error(request, 'Incorrect password. Please try again.')
+    else:
+        form = ConfirmAdminPasswordForm()
+    
+    return render(request, 'admin_panel/toggle_superuser_status.html', {'form': form, 'user': {'id': user[0], 'username': user[1]}})
 
 @login_required
 @user_passes_test(is_admin)
@@ -210,7 +238,7 @@ def user_list_view(request):
     general_query = request.GET.get('q')
 
     sql_query = """
-        SELECT id, username, email, address, phone_number, is_active, is_admin, 
+        SELECT id, username, email, address, phone_number, is_active, is_admin, is_superuser,
         COALESCE(remarks, '') AS remarks 
         FROM accounts_customuser WHERE 1=1
     """
@@ -238,7 +266,8 @@ def user_list_view(request):
             'phone_number': user[4],
             'is_active': user[5],
             'is_admin': user[6],
-            'remarks': user[7]  # Include remarks
+            'is_superuser': user[7],  
+            'remarks': user[8]  
         }
         for user in users
     ]

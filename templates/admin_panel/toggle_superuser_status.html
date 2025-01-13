@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Confirm Password to change Super User Status</h2>
+    <form method="post" action="{% url 'admin_panel:toggle_superuser_status' user.id %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Confirm</button>
+    </form>
+</div>
+{% endblock %}
