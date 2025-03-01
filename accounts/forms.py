@@ -12,14 +12,14 @@ class CustomUserCreationForm(UserCreationForm):
         Fieldset(
             'Create your account',
             'username',
+            'password1',
+            'password2',
             'first_name',
             'last_name',
             'email',
             'address',
             'phone_number',
             'display_name',
-            'password1',
-            'password2'
         ),
         ButtonHolder(
             Submit('submit', 'Create Account', css_class='btn-primary')
@@ -28,7 +28,16 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'first_name', 'last_name', 'email', 'address', 'phone_number', 'display_name')
+        fields = (
+            'first_name', 
+            'last_name', 
+            'display_name', 
+            'username', 
+            'password1', 
+            'password2', 
+            'email', 
+            'address', 
+            'phone_number')
 
 class CustomUserUpdateForm(forms.ModelForm):
     helper = FormHelper()

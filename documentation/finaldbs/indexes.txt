@@ -1,0 +1,13 @@
+CREATE INDEX idx_username ON accounts_customuser (username);
+CREATE INDEX idx_user_id ON audit_log (user_id);
+CREATE INDEX idx_feedback_user_id ON feedback_feedback (user_id);
+CREATE INDEX idx_incident_user_id ON incidents_incidentreport (user_id);
+CREATE INDEX idx_notification_user_id ON notifications_notification (user_id);
+CREATE INDEX idx_notification_incident_id ON notifications_notification (incident_id);
+CREATE INDEX idx_is_admin ON accounts_customuser (is_admin);
+CREATE INDEX idx_is_superuser ON accounts_customuser (is_superuser);
+CREATE INDEX idx_is_active ON accounts_customuser (is_active);
+CREATE INDEX idx_category ON incidents_incidentreport (category);
+CREATE INDEX idx_created_at ON incidents_incidentreport (created_at);
+CREATE INDEX idx_status ON incidents_incidentreport (status);
+CREATE INDEX idx_timestamp ON audit_log (timestamp);

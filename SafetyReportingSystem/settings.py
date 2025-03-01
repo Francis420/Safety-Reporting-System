@@ -44,8 +44,6 @@ INSTALLED_APPS = [
     'notifications',
     'feedback',
     'crispy_forms',
-    'help',
-    'about',
     'leaflet',
     'channels',
     'crispy_bootstrap4'
@@ -180,3 +178,44 @@ LEAFLET_CONFIG = {
 
 GDAL_LIBRARY_PATH = os.path.join('C:\\', 'OSGeo4W', 'bin', 'gdal309.dll')
 GEOS_LIBRARY_PATH = os.path.join('C:\\', 'OSGeo4W', 'bin', 'geos_c.dll')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'null': {
+            'class': 'logging.NullHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['null'],
+            'level': 'INFO',
+        },
+        'django.request': {
+            'handlers': ['null'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.server': {
+            'handlers': ['null'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.template': {
+            'handlers': ['null'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['null'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.security': {
+            'handlers': ['null'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}

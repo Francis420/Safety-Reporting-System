@@ -25,7 +25,5 @@ urlpatterns = [
     path('incidents/', include('incidents.urls')),
     path('notifications/', include('notifications.urls')),
     path('feedback/', include('feedback.urls')),
-    path('help/', include('help.urls')),
-    path('about/', include('about.urls')),
     path('', home_view, name='home'),
 ]

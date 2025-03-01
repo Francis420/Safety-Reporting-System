@@ -7,3 +7,4 @@ class CustomUser(AbstractUser):
     is_admin = models.BooleanField(default=False)
     display_name = models.CharField(max_length=50, blank=True, null=True) 
     remarks = models.TextField(blank=True, null=True)
+    is_superuser = models.BooleanField(default=False) 

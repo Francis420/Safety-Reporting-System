@@ -14,13 +14,13 @@ def signup_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            hashed_password = make_password(data['password'])
+            hashed_password = make_password(data['password1'])
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO accounts_customuser (password, username, first_name, last_name, email, is_staff, is_active, date_joined, is_admin) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    [hashed_password, data['username'], data['first_name'], data['last_name'], data['email'], False, True, '2025-01-11 00:00:00', False]
-                )
-            user = authenticate(username=data['username'], password=data['password'])
+                    "INSERT INTO accounts_customuser (password, username, first_name, last_name, email, is_staff, is_active, date_joined, is_admin, is_superuser) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    [hashed_password, data['username'], data['first_name'], data['last_name'], data['email'], False, True, '2025-01-11 00:00:00', False, False]  # Include is_superuser
+)
+            user = authenticate(username=data['username'], password=data['password1'])
             login(request, user)
             return redirect('home')
     else:
